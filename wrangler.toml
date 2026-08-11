@@ -1,0 +1,13 @@
+# Name must match your Worker name in the Cloudflare dashboard
+name = "zenergyphotography"
+
+# Date that controls which Workers runtime features are available
+compatibility_date = "2026-07-30"
+
+# Serve static files (HTML, CSS, images) directly from the repo
+[assets]
+directory = "./"
+# Optional: show a custom 404 page if a file isn't found
+not_found_handling = "404-page"
+# Optional: automatically redirect /about to /about/ if there's an about/index.html
+html_handling = "auto-trailing-slash"

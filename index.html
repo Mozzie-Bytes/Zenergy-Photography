@@ -1,23 +1,172 @@
-﻿<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=/zenergy/">
-<link rel="canonical" href="/zenergy/">
-<title>Redirecting…</title>
-<script>location.replace('/zenergy/');</script>
-</head>
-<body>
-<p>Redirecting to <a href="/zenergy/">zenergy/</a></p>
-</body>
-</html>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Zenergy Photography</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zenergy — One Moment In Time</title>
+<meta name="description" content="Zenergy is a photographic journal — One Moment in Time, caught before it was gone.">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Hello from GitHub! 🎉</h1>
-  <p>This page is definitely still under construction, one click at a time.</p>
+
+<header class="site-header">
+  <div class="sprockets"></div>
+  <nav class="nav">
+    <a href="index.html" class="logo">
+      <img src="logo.png" alt="Zenergy — One Moment In Time, by Steve McLaren" class="logo-mark">
+    </a>
+    <button class="nav-toggle focus-ring" aria-expanded="false" aria-label="Toggle menu">MENU</button>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="galleries.html">Galleries</a></li>
+      <li><a href="journal.html">Journal</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section>
+    <div class="wrap center" style="padding-top: 2rem;">
+      <span class="eyebrow">A photographic journal</span>
+      <h1 class="hero-mark-name">Zenergy</h1>
+      <p class="hero-mark-tagline">One Moment In Time</p>
+      <p style="max-width: 46ch; margin: 0 auto 2rem; font-size: 1.05rem;">
+        Light doesn't wait. Every frame here is a bet made in a fraction of a second —
+        on a street corner, a coastline, a stranger's face — that this moment was
+        worth keeping.
+      </p>
+      <div style="display:flex; gap: 1rem; justify-content:center; flex-wrap: wrap;">
+        <a href="galleries.html" class="btn btn-solid focus-ring">View the galleries</a>
+        <a href="about.html" class="btn focus-ring">About the project</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT SHEET — auto-built from your galleries, newest 6 photos first -->
+  <section style="padding-top: 0;">
+    <div class="wrap">
+      <div class="contact-sheet reveal" id="auto-contact-sheet">
+        <p class="muted center" style="grid-column: 1/-1;">Loading your latest shots…</p>
+      </div>
+      <p class="center muted" style="margin-top: 1rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.05em;">
+        The newest six, always. One frame stops, the next one starts turning.
+      </p>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="divider"></div></div>
+
+  <!-- INTRO -->
+  <section>
+    <div class="wrap" style="max-width: 760px;">
+      <span class="eyebrow">The project</span>
+      <h2>Shot on instinct, kept on purpose.</h2>
+      <p>
+        Zenergy started as a way to slow down — one frame a day, no reshoots,
+        no staging. It's grown into a running record of light: golden hour on
+        a fire escape, fog rolling off a coastline, the half-second before
+        someone notices the camera. Some of it's good. All of it's honest.
+      </p>
+      <p>This is where it lives, roll by roll.</p>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="divider"></div></div>
+
+  <!-- GALLERIES TEASER -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Browse by roll</span>
+          <h2>Galleries</h2>
+        </div>
+        <a href="galleries.html" class="btn focus-ring">See all galleries →</a>
+      </div>
+      <div class="card-grid reveal">
+        <a href="galleries.html#wildflowers" class="card focus-ring" style="text-decoration:none;">
+          <span class="eyebrow accent-red">01 — Wildflowers</span>
+          <h3>Where the Wild Things Grow</h3>
+          <p>Nothing here was planted. Just the ones that come back every year.</p>
+        </a>
+        <a href="galleries.html#fungi" class="card focus-ring" style="text-decoration:none;">
+          <span class="eyebrow accent-red">02 — Fungi</span>
+          <h3>Magic Mushrooms</h3>
+          <p>We are, quite literally, interconnected.</p>
+        </a>
+        <a href="galleries.html#streets" class="card focus-ring" style="text-decoration:none;">
+          <span class="eyebrow accent-red">03 — Streets</span>
+          <h3>Concrete &amp; Chance</h3>
+          <p>Candid frames from cities that don't slow down for anyone.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="divider"></div></div>
+
+  <!-- JOURNAL TEASER -->
+  <section>
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">From the journal</span>
+          <h2>Notes from the field</h2>
+        </div>
+        <a href="journal.html" class="btn focus-ring">Read the journal →</a>
+      </div>
+      <div class="card reveal">
+        <span class="eyebrow">June 2026 · Faroe Islands</span>
+        <h3>Waiting for weather that never clears</h3>
+        <p>
+          Four days chasing a break in the cloud that never fully came — and
+          the one frame that made the trip worth it anyway. Some notes on
+          shooting flat, grey light without giving up on contrast.
+        </p>
+        <a href="journal.html" class="btn focus-ring" style="margin-top:0.5rem;">Continue reading</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="sprockets flip"></div>
+  <div class="wrap" style="padding-top: 2rem;">
+    <div class="footer-grid">
+      <div>
+        <h4>Zenergy</h4>
+        <p class="muted" style="max-width: 32ch;">A photographic journal. One moment in time, caught before it was gone.</p>
+      </div>
+      <div>
+        <h4>Site</h4>
+        <ul>
+          <li><a href="about.html">About</a></li>
+          <li><a href="galleries.html">Galleries</a></li>
+          <li><a href="journal.html">Journal</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="#">Instagram</a></li>
+          <li><a href="#">Newsletter</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Zenergy. All frames reserved.</span>
+      <span>Built one shutter click at a time.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

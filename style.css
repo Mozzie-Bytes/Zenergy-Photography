@@ -255,6 +255,8 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   color: rgba(245,239,230,0.35);
 }
 .frame-photo svg { width: 34px; height: 34px; opacity: 0.6; }
+.frame-photo img { cursor: zoom-in; transition: opacity 0.15s ease; }
+.frame-photo img:hover { opacity: 0.88; }
 .ph-1 { background: linear-gradient(155deg, #3a2230, #14121A 70%); }
 .ph-2 { background: linear-gradient(155deg, #0f3d3a, #14121A 70%); }
 .ph-3 { background: linear-gradient(155deg, #4a3512, #14121A 70%); }
@@ -276,6 +278,51 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
 }
 .frame-caption .loc { color: var(--goldenhour); }
 
+/* ---------- Lightbox ---------- */
+.lightbox-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(10,9,12,0.94);
+  padding: 4vh 4vw;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: zoom-out;
+}
+.lightbox-overlay.open { display: flex; }
+.lightbox-overlay img {
+  max-width: 92vw;
+  max-height: 82vh;
+  object-fit: contain;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  cursor: default;
+}
+.lightbox-caption {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--paper-dim);
+  margin-top: 1rem;
+  text-align: center;
+}
+.lightbox-caption .loc { color: var(--goldenhour); margin-left: 0.6rem; }
+.lightbox-close {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.5rem;
+  background: none;
+  border: 1px solid rgba(245,239,230,0.3);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.lightbox-close:hover { background: rgba(245,239,230,0.1); }
+
 .contact-sheet {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -284,6 +331,21 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   border: 1px solid rgba(245,239,230,0.12);
 }
 .contact-sheet .frame { border: none; }
+
+.gallery-grid.collapsed .frame:nth-child(n+4) { display: none; }
+.gallery-toggle {
+  display: inline-block;
+  margin-top: 1.2rem;
+  background: none;
+  border: 1px solid rgba(245,239,230,0.25);
+  color: var(--paper-dim);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+}
+.gallery-toggle:hover { background: rgba(245,239,230,0.08); color: var(--paper); }
 
 .gallery-grid {
   display: grid;

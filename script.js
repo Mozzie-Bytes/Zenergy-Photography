@@ -11,6 +11,85 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ---------- Lightbox ----------
+  // Built once and reused for every real photo on the page (including
+  // photos added later, like the homepage's auto-loaded contact sheet).
+  const overlay = document.createElement('div');
+  overlay.className = 'lightbox-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.innerHTML = `
+    <button class="lightbox-close focus-ring" aria-label="Close">CLOSE ✕</button>
+    <img alt="">
+    <div class="lightbox-caption"><span class="lightbox-loc"></span></div>
+  `;
+  document.body.appendChild(overlay);
+  const lbImg = overlay.querySelector('img');
+  const lbLoc = overlay.querySelector('.lightbox-loc');
+  const lbClose = overlay.querySelector('.lightbox-close');
+
+  function openLightbox(img) {
+    lbImg.src = img.getAttribute('src');
+    lbImg.alt = img.getAttribute('alt') || '';
+    const frame = img.closest('.frame');
+    const loc = frame ? frame.querySelector('.frame-caption .loc') : null;
+    lbLoc.textContent = loc ? loc.textContent : '';
+    overlay.classList.add('open');
+    lbClose.focus();
+  }
+
+  function closeLightbox() {
+    overlay.classList.remove('open');
+    lbImg.src = '';
+  }
+
+  document.body.addEventListener('click', (e) => {
+    const img = e.target.closest('.frame-photo img');
+    if (img) {
+      openLightbox(img);
+      return;
+    }
+    if (e.target === overlay) closeLightbox();
+  });
+  lbClose.addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeLightbox();
+  });
+
+  // ---------- Gallery preview / expand-on-click ----------
+  // Each gallery shows a small taste by default. Clicking the gallery's
+  // name/number (or the "view all" button) reveals the rest. Photos stay
+  // lazy-loaded either way, so nothing downloads until it's actually shown.
+  const PREVIEW_COUNT = 3;
+  document.querySelectorAll('.gallery-grid').forEach((grid) => {
+    const frameCount = Array.from(grid.children).filter(el => el.classList.contains('frame')).length;
+    if (frameCount <= PREVIEW_COUNT) return; // nothing worth collapsing
+
+    grid.classList.add('collapsed');
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'gallery-toggle focus-ring';
+    toggle.textContent = `View all ${frameCount} photos →`;
+    grid.insertAdjacentElement('afterend', toggle);
+
+    function setExpanded(open) {
+      grid.classList.toggle('collapsed', !open);
+      toggle.textContent = open ? 'Show less ↑' : `View all ${frameCount} photos →`;
+    }
+
+    toggle.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
+
+    // Clicking the gallery's own name/number does the same thing.
+    const section = grid.closest('section');
+    const h2 = section && section.querySelector('.section-head h2');
+    const titleWrap = h2 && h2.closest('div');
+    if (titleWrap) {
+      titleWrap.style.cursor = 'pointer';
+      titleWrap.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
+    }
+  });
+
   // Mark active nav link based on current page
   const path = window.location.pathname.split('/').pop() || 'index.html';
   document.querySelectorAll('.nav-links a').forEach(a => {
@@ -94,182 +173,112 @@ function autoFillExifCaptions() {
     const frame = span.closest('.frame');
     const img = frame && frame.querySelector('.frame-photo img');
     if (!img) return;
-    EXIF.getData(img, function () {
+
+    const readTags = function () {
       const tags = {
         FNumber: EXIF.getTag(this, 'FNumber'),
         ExposureTime: EXIF.getTag(this, 'ExposureTime'),
         ISOSpeedRatings: EXIF.getTag(this, 'ISOSpeedRatings'),
       };
       span.textContent = formatExifCaption(tags);
-    });
+    };
+
+    // exif-js silently does nothing if the <img> hasn't finished loading yet
+    // (img.complete === false) — which, now that photos are lazy-loaded, is
+    // true for almost every photo below the fold at page-load time. Wait for
+    // the image's own 'load' event before asking exif-js to read it.
+    if (img.complete) {
+      EXIF.getData(img, readTags);
+    } else {
+      img.addEventListener('load', function () {
+        EXIF.getData(img, readTags);
+      }, { once: true });
+    }
   });
 }
 
-// Direct photo list — no need to fetch galleries.html.
-// These are your actual photos in the /photos folder.
-const allPhotos = [
-  { src: 'photos/wildflowers-01.jpg', alt: 'Southwest WA' },
-  { src: 'photos/wildflowers-02.jpg', alt: 'Southwest WA' },
-  { src: 'photos/wildflowers-03.jpg', alt: 'Southwest WA' },
-  { src: 'photos/wildflowers-04.jpg', alt: 'Southwest WA' },
-  { src: 'photos/wildflowers-05.jpg', alt: 'Southwest WA' },
-  { src: 'photos/fungi-01.jpg', alt: 'Perth Hills' },
-  { src: 'photos/fungi-02.jpg', alt: 'Perth Hills' },
-  { src: 'photos/fungi-03.jpg', alt: 'Perth Hills' },
-  { src: 'photos/fungi-04.jpg', alt: 'Perth Hills' },
-  { src: 'photos/streets-01.jpg', alt: 'Perth' },
-  { src: 'photos/streets-02.jpg', alt: 'Perth' },
-  { src: 'photos/streets-03.jpg', alt: 'Perth' },
-  { src: 'photos/streets-04.jpg', alt: 'Perth' },
-  { src: 'photos/streets-05.jpg', alt: 'Perth' },
-  { src: 'photos/coastlines-01.jpg', alt: 'Western Australia' },
-  { src: 'photos/coastlines-02.jpg', alt: 'Western Australia' },
-  { src: 'photos/coastlines-03.jpg', alt: 'Western Australia' },
-  { src: 'photos/coastlines-04.jpg', alt: 'Western Australia' },
-  { src: 'photos/coastlines-05.jpg', alt: 'Western Australia' },
-  { src: 'photos/coastlines-06.jpg', alt: 'Western Australia' },
-  { src: 'photos/golden-hour-01.jpg', alt: 'Sanur, Bali' },
-  { src: 'photos/golden-hour-02.jpg', alt: 'Sanur, Bali' },
-  { src: 'photos/golden-hour-03.jpg', alt: 'Sanur, Bali' },
-  { src: 'photos/golden-hour-04.jpg', alt: 'Sanur, Bali' },
-  { src: 'photos/golden-hour-05.jpg', alt: 'Sanur, Bali' },
-  { src: 'photos/golden-hour-06.jpg', alt: 'Sanur, Bali' },
-  { src: 'photos/golden-hour-07.jpg', alt: 'Perth' },
-  { src: 'photos/golden-hour-08.jpg', alt: 'Perth' },
-  { src: 'photos/golden-hour-09.jpg', alt: 'Perth' },
-  { src: 'photos/golden-hour-10.jpg', alt: 'Perth' },
-  { src: 'photos/golden-hour-11.jpg', alt: 'Perth' },
-  { src: 'photos/waterfalls-01.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-01.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-02.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-03.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-04.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-05.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-06.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-07.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-08.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-09.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-10.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-11.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-12.jpg', alt: 'Western Australia' },
-  { src: 'photos/creatures-13.jpg', alt: 'Western Australia' },
-  { src: 'photos/portraits-01.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-02.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-03.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-04.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-05.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-06.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-07.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-08.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-09.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-10.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-11.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-12.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-13.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-14.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-15.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-16.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-17.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-18.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-19.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-20.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-21.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-22.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-23.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-24.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-25.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-26.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-27.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-28.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-29.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-30.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-31.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-32.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-33.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-35.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-36.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-37.jpg', alt: 'Perth' },
-  { src: 'photos/portraits-38.jpg', alt: 'Perth' },
-  { src: 'photos/night-01.jpg', alt: 'Perth' },
-  { src: 'photos/night-02.jpg', alt: 'Perth' },
-  { src: 'photos/night-03.jpg', alt: 'Perth' },
-  { src: 'photos/night-04.jpg', alt: 'Perth' },
-  { src: 'photos/night-05.jpg', alt: 'Perth' },
-  { src: 'photos/night-06.jpg', alt: 'Perth' },
-  { src: 'photos/night-07.jpg', alt: 'Perth' },
-  { src: 'photos/night-08.jpg', alt: 'Perth' },
-  { src: 'photos/night-09.jpg', alt: 'Perth' },
-  { src: 'photos/story-01.jpg', alt: 'Untitled' },
-  { src: 'photos/story-02.jpg', alt: 'Untitled' },
-  { src: 'photos/story-03.jpg', alt: 'Untitled' },
-  { src: 'photos/story-04.jpg', alt: 'Untitled' },
-  { src: 'photos/story-05.jpg', alt: 'Untitled' },
-  { src: 'photos/story-06.jpg', alt: 'Untitled' },
-  { src: 'photos/story-07.jpg', alt: 'Untitled' },
-  { src: 'photos/story-08.jpg', alt: 'Untitled' },
-  { src: 'photos/story-09.jpg', alt: 'Untitled' },
-  { src: 'photos/story-10.jpg', alt: 'Untitled' },
-  { src: 'photos/story-11.jpg', alt: 'Untitled' },
-  { src: 'photos/story-12.jpg', alt: 'Untitled' },
-  { src: 'photos/story-13.jpg', alt: 'Untitled' },
-  { src: 'photos/story-14.jpg', alt: 'Untitled' },
-  { src: 'photos/story-15.jpg', alt: 'Untitled' },
-  { src: 'photos/story-16.jpg', alt: 'Untitled' },
-  { src: 'photos/story-17.jpg', alt: 'Untitled' },
-  { src: 'photos/story-18.jpg', alt: 'Untitled' },
-  { src: 'photos/story-19.jpg', alt: 'Untitled' },
-  { src: 'photos/story-20.jpg', alt: 'Untitled' },
-  { src: 'photos/story-21.jpg', alt: 'Untitled' },
-  { src: 'photos/P6200085.jpg', alt: 'Untitled' },
-  { src: 'photos/P6200086.jpg', alt: 'Untitled' },
-  { src: 'photos/P6200101.jpg', alt: 'Untitled' },
-  { src: 'photos/P6280204.jpg', alt: 'Untitled' },
-  { src: 'photos/P6280244.jpg', alt: 'Untitled' },
-  { src: 'photos/P7040268.jpg', alt: 'Untitled' },
-  { src: 'photos/P7070399 (2).jpg', alt: 'Untitled' },
-  { src: 'photos/P7070401 (2).jpg', alt: 'Untitled' },
-  { src: 'photos/P7070402 (2).jpg', alt: 'Untitled' },
-  { src: 'photos/P7080471 (3).jpg', alt: 'Untitled' },
-  { src: 'photos/P7120605.jpg', alt: 'Untitled' },
-  { src: 'photos/P7120606.jpg', alt: 'Untitled' },
-  { src: 'photos/P7130640.02.jpg', alt: 'Untitled' },
-  { src: 'photos/P7130643.jpg', alt: 'Untitled' },
-  { src: 'photos/P7130667.01 (2).jpg', alt: 'Untitled' },
-  { src: 'photos/P7130691.01.jpg', alt: 'Untitled' },
-  { src: 'photos/P7130702.01.jpg', alt: 'Untitled' },
-  { src: 'photos/P7130715.jpg', alt: 'Untitled' },
-  { src: 'photos/P7150768.jpg', alt: 'Untitled' },
-  { src: 'photos/P7150783.jpg', alt: 'Untitled' },
-  { src: 'photos/P7150808.jpg', alt: 'Untitled' },
-  { src: 'photos/P7150839.jpg', alt: 'Untitled' },
-  { src: 'photos/P7150840.jpg', alt: 'Untitled' },
-  { src: 'photos/about-01.jpg', alt: 'Untitled' },
-];
-
-// Homepage-only: display the last 6 photos from the full list
-// If you upload new photos in the future, update the allPhotos array above
-function buildHomepageContactSheet() {
+// Homepage-only: reads every real photo currently in galleries.html, checks
+// each one's EXIF capture date, and renders the 6 most recently-taken photos
+// into the homepage contact sheet automatically. Nothing to maintain by
+// hand — add a photo to any gallery and, if it's the newest, it appears here
+// on its own next time the homepage loads.
+//
+// Location text: uses each photo's `alt` attribute from galleries.html, so
+// setting a meaningful alt (e.g. alt="Fremantle") on a gallery photo also
+// gives it a location on the homepage for free. Leave alt as the default
+// "Describe this photo" and no location will be shown.
+async function buildHomepageContactSheet() {
   const container = document.querySelector('#auto-contact-sheet');
   if (!container) return; // not the homepage
 
-  if (allPhotos.length === 0) {
-    container.innerHTML = '<p class="muted center" style="grid-column:1/-1;">Add photos to your galleries and they\'ll appear here automatically.</p>';
-    return;
+  try {
+    const res = await fetch('galleries.html');
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const imgs = Array.from(doc.querySelectorAll('.frame-photo img'));
+
+    // De-duplicate — the same photo can legitimately appear in more than
+    // one gallery, but should only show once here.
+    const seen = new Set();
+    const photos = [];
+    imgs.forEach((img) => {
+      const src = img.getAttribute('src');
+      if (!src || seen.has(src)) return;
+      seen.add(src);
+      photos.push({ src, alt: img.getAttribute('alt') || '' });
+    });
+
+    if (!photos.length) {
+      container.innerHTML = '<p class="muted center" style="grid-column:1/-1;">Add photos to your galleries and they\'ll appear here automatically.</p>';
+      return;
+    }
+
+    // Read each photo's EXIF capture date in parallel.
+    const withDates = await Promise.all(
+      photos.map(
+        (p) =>
+          new Promise((resolve) => {
+            if (typeof EXIF === 'undefined') return resolve({ ...p, date: null });
+            const im = new Image();
+            im.onload = function () {
+              EXIF.getData(im, function () {
+                const dateStr = EXIF.getTag(this, 'DateTimeOriginal') || EXIF.getTag(this, 'DateTime');
+                resolve({ ...p, date: parseExifDate(dateStr) });
+              });
+            };
+            im.onerror = function () {
+              resolve({ ...p, date: null });
+            };
+            im.src = p.src;
+          })
+      )
+    );
+
+    // Newest first. Photos with no readable date (EXIF stripped) sink to
+    // the bottom rather than being excluded entirely.
+    withDates.sort((a, b) => {
+      if (a.date && b.date) return b.date - a.date;
+      if (a.date) return -1;
+      if (b.date) return 1;
+      return 0;
+    });
+
+    const latest6 = withDates.slice(0, 6);
+
+    container.innerHTML = latest6
+      .map((p) => {
+        const loc = p.alt && p.alt !== 'Describe this photo' ? p.alt : '';
+        return `
+        <div class="frame">
+          <div class="frame-photo"><img src="${p.src}" alt="${p.alt}" style="width:100%; height:100%; object-fit:cover;" loading="lazy"></div>
+          <div class="frame-caption"><span class="exif-auto">…</span><span class="loc">${loc}</span></div>
+        </div>`;
+      })
+      .join('');
+
+    autoFillExifCaptions(); // fill in aperture/shutter/ISO for the frames just injected
+  } catch (err) {
+    console.error('Could not build homepage contact sheet:', err);
+    container.innerHTML = '<p class="muted center" style="grid-column:1/-1;">Could not load latest photos — check the console for details.</p>';
   }
-
-  // Get the latest 6 photos (last 6 in the array)
-  const latest6 = allPhotos.slice(-6).reverse();
-
-  container.innerHTML = latest6
-    .map((p) => {
-      const loc = p.alt && p.alt !== 'Describe this photo' ? p.alt : '';
-      return `
-      <div class="frame">
-        <div class="frame-photo"><img src="${p.src}" alt="${p.alt}" style="width:100%; height:100%; object-fit:cover;"></div>
-        <div class="frame-caption"><span class="exif-auto">…</span><span class="loc">${loc}</span></div>
-      </div>`;
-    })
-    .join('');
-
-  autoFillExifCaptions(); // fill in aperture/shutter/ISO for the frames just injected
 }

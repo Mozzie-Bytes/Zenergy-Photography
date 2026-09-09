@@ -56,6 +56,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && overlay.classList.contains('open')) closeLightbox();
   });
 
+  // ---------- Shuffle each gallery's photo order ----------
+  // A fresh random arrangement every time the page loads — nothing pinned
+  // down twice. Runs before the preview/collapse logic below, so the
+  // 3-photo "taste" shown by default is different on every visit too.
+  document.querySelectorAll('.gallery-grid').forEach((grid) => {
+    const frames = Array.from(grid.children);
+    for (let i = frames.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [frames[i], frames[j]] = [frames[j], frames[i]];
+    }
+    frames.forEach((f) => grid.appendChild(f));
+  });
+
   // ---------- Gallery preview / expand-on-click ----------
   // Each gallery shows a small taste by default. Clicking the gallery's
   // name/number (or the "view all" button) reveals the rest. Photos stay
@@ -132,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // then (on the homepage only) auto-build the "6 latest" contact sheet.
   autoFillExifCaptions();
   buildHomepageContactSheet();
-  buildGalleryTeaserThumbnails();
+  buildRandomGalleryTeasers();
 });
 
 // ---- EXIF auto-captions ----
@@ -284,51 +297,72 @@ async function buildHomepageContactSheet() {
   }
 }
 
-// Fills each homepage gallery-teaser card's .card-thumb with the most
-// recently taken photo from that specific gallery (by EXIF capture date).
-async function buildGalleryTeaserThumbnails() {
-  const cards = Array.from(document.querySelectorAll('[data-gallery-thumb]'));
-  if (!cards.length) return; // not the homepage
+// Picks 3 different galleries at random on every homepage visit, and builds
+// their teaser cards entirely from what's already in galleries.html (title,
+// quote/description, colour, and a thumbnail of that gallery's most recent
+// photo) — so there's nothing to keep in sync by hand as galleries change.
+const REAL_GALLERY_IDS = [
+  'all-that-is', 'skies', 'mountains', 'rivers', 'waterfalls', 'coastlines',
+  'forests', 'wildflowers', 'creatures', 'portraits', 'streets', 'story',
+  'golden-hour', 'night', 'fungi', 'wabi-sabi',
+];
+
+async function buildRandomGalleryTeasers() {
+  const container = document.getElementById('random-gallery-teasers');
+  if (!container) return; // not the homepage
 
   try {
     const res = await fetch('galleries.html');
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
-    await Promise.all(cards.map(async (card) => {
-      const galleryId = card.getAttribute('data-gallery-thumb');
+    const shuffled = [...REAL_GALLERY_IDS];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const picked = shuffled.slice(0, 3);
+
+    const cardsHtml = await Promise.all(picked.map(async (galleryId) => {
       const section = doc.querySelector('#' + galleryId);
-      const thumb = card.querySelector('.card-thumb');
-      if (!section || !thumb) return;
-
+      if (!section) return '';
+      const eyebrow = section.querySelector('.section-head .eyebrow');
+      const h2 = section.querySelector('.section-head h2');
+      const desc = section.querySelector('.section-head p');
       const imgs = Array.from(section.querySelectorAll('.frame-photo img'));
-      if (!imgs.length) return;
 
-      const withDates = await Promise.all(imgs.map((img) => new Promise((resolve) => {
-        const src = img.getAttribute('src');
-        if (typeof EXIF === 'undefined') return resolve({ src, date: null });
-        const im = new Image();
-        im.onload = function () {
-          EXIF.getData(im, function () {
-            const dateStr = EXIF.getTag(this, 'DateTimeOriginal') || EXIF.getTag(this, 'DateTime');
-            resolve({ src, date: parseExifDate(dateStr) });
-          });
-        };
-        im.onerror = function () { resolve({ src, date: null }); };
-        im.src = src;
-      })));
-
-      withDates.sort((a, b) => (b.date || 0) - (a.date || 0));
-      const newest = withDates[0];
-      if (newest && newest.src) {
-        const thumbImg = document.createElement('img');
-        thumbImg.src = newest.src;
-        thumbImg.alt = '';
-        thumbImg.loading = 'lazy';
-        thumb.appendChild(thumbImg);
+      let thumbSrc = imgs.length ? imgs[0].getAttribute('src') : null;
+      if (imgs.length && typeof EXIF !== 'undefined') {
+        const withDates = await Promise.all(imgs.map((img) => new Promise((resolve) => {
+          const src = img.getAttribute('src');
+          const im = new Image();
+          im.onload = function () {
+            EXIF.getData(im, function () {
+              const dateStr = EXIF.getTag(this, 'DateTimeOriginal') || EXIF.getTag(this, 'DateTime');
+              resolve({ src, date: parseExifDate(dateStr) });
+            });
+          };
+          im.onerror = function () { resolve({ src, date: null }); };
+          im.src = src;
+        })));
+        withDates.sort((a, b) => (b.date || 0) - (a.date || 0));
+        if (withDates[0]) thumbSrc = withDates[0].src;
       }
+
+      const descText = desc ? desc.textContent.split('.')[0] + '.' : '';
+      const thumbImg = thumbSrc ? `<img src="${thumbSrc}" alt="" loading="lazy">` : '';
+
+      return `<a href="galleries.html#${galleryId}" class="card focus-ring" style="text-decoration:none;">
+        <div class="card-thumb">${thumbImg}</div>
+        ${eyebrow ? eyebrow.outerHTML : ''}
+        <h3>${h2 ? h2.innerHTML : ''}</h3>
+        <p>${descText}</p>
+      </a>`;
     }));
+
+    container.innerHTML = cardsHtml.join('');
   } catch (err) {
-    console.error('Could not build gallery teaser thumbnails:', err);
+    console.error('Could not build random gallery teasers:', err);
+    container.innerHTML = '<p class="muted center" style="grid-column:1/-1;">Could not load galleries — check the console for details.</p>';
   }
 }

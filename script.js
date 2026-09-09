@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // then (on the homepage only) auto-build the "6 latest" contact sheet.
   autoFillExifCaptions();
   buildHomepageContactSheet();
+  buildGalleryTeaserThumbnails();
 });
 
 // ---- EXIF auto-captions ----
@@ -280,5 +281,54 @@ async function buildHomepageContactSheet() {
   } catch (err) {
     console.error('Could not build homepage contact sheet:', err);
     container.innerHTML = '<p class="muted center" style="grid-column:1/-1;">Could not load latest photos — check the console for details.</p>';
+  }
+}
+
+// Fills each homepage gallery-teaser card's .card-thumb with the most
+// recently taken photo from that specific gallery (by EXIF capture date).
+async function buildGalleryTeaserThumbnails() {
+  const cards = Array.from(document.querySelectorAll('[data-gallery-thumb]'));
+  if (!cards.length) return; // not the homepage
+
+  try {
+    const res = await fetch('galleries.html');
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    await Promise.all(cards.map(async (card) => {
+      const galleryId = card.getAttribute('data-gallery-thumb');
+      const section = doc.querySelector('#' + galleryId);
+      const thumb = card.querySelector('.card-thumb');
+      if (!section || !thumb) return;
+
+      const imgs = Array.from(section.querySelectorAll('.frame-photo img'));
+      if (!imgs.length) return;
+
+      const withDates = await Promise.all(imgs.map((img) => new Promise((resolve) => {
+        const src = img.getAttribute('src');
+        if (typeof EXIF === 'undefined') return resolve({ src, date: null });
+        const im = new Image();
+        im.onload = function () {
+          EXIF.getData(im, function () {
+            const dateStr = EXIF.getTag(this, 'DateTimeOriginal') || EXIF.getTag(this, 'DateTime');
+            resolve({ src, date: parseExifDate(dateStr) });
+          });
+        };
+        im.onerror = function () { resolve({ src, date: null }); };
+        im.src = src;
+      })));
+
+      withDates.sort((a, b) => (b.date || 0) - (a.date || 0));
+      const newest = withDates[0];
+      if (newest && newest.src) {
+        const thumbImg = document.createElement('img');
+        thumbImg.src = newest.src;
+        thumbImg.alt = '';
+        thumbImg.loading = 'lazy';
+        thumb.appendChild(thumbImg);
+      }
+    }));
+  } catch (err) {
+    console.error('Could not build gallery teaser thumbnails:', err);
   }
 }

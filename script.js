@@ -304,7 +304,7 @@ async function buildHomepageContactSheet() {
 const REAL_GALLERY_IDS = [
   'all-that-is', 'skies', 'mountains', 'rivers', 'waterfalls', 'coastlines',
   'forests', 'wildflowers', 'creatures', 'portraits', 'streets', 'story',
-  'in-the-zone', 'golden-hour', 'night', 'fungi', 'wabi-sabi',
+  'in-the-zone', 'tathata', 'golden-hour', 'night', 'fungi', 'wabi-sabi',
 ];
 
 async function buildRandomGalleryTeasers() {

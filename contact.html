@@ -122,23 +122,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
 <script src="script.js"></script>
 <script>
-// Live contact-form handling (FormSubmit.co) — replaces any placeholder
-// submit handler that script.js may still attach to this form.
+// Live contact-form handling (FormSubmit.co).
 (function () {
-  var oldForm = document.getElementById('contact-form');
-  if (!oldForm) return;
-
-  // Clone the form to strip any previously-attached submit listeners
-  // (e.g. the old placeholder handler in script.js), then swap it in.
-  var form = oldForm.cloneNode(true);
-  oldForm.parentNode.replaceChild(form, oldForm);
+  var form = document.getElementById('contact-form');
+  if (!form) return;
 
   var status = form.querySelector('#form-status');
   var button = form.querySelector('button[type="submit"]');
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    e.stopImmediatePropagation();
 
     var btnLabel = button.textContent;
     button.disabled = true;

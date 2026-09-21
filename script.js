@@ -128,19 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
     revealEls.forEach(el => el.classList.add('in'));
   }
 
-  // Contact form (static placeholder — no backend)
-  const form = document.querySelector('#contact-form');
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const status = document.querySelector('#form-status');
-      if (status) {
-        status.textContent = "This is a placeholder form — connect it to a form service (e.g. Formspree) or backend to actually receive messages.";
-        status.classList.add('accent-amber');
-      }
-    });
-  }
-
   // Auto-fill aperture/shutter/ISO captions from each photo's real EXIF data,
   // then (on the homepage only) auto-build the "6 latest" contact sheet.
   autoFillExifCaptions();

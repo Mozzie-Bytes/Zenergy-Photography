@@ -39,7 +39,8 @@
   <section style="padding-top:0;">
     <div class="wrap" style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 3rem;">
 
-      <form id="contact-form" class="card reveal" novalidate>
+      <form id="contact-form" class="card reveal" novalidate
+        action="https://formsubmit.co/ajax/zenergy.one@proton.me" method="POST">
         <div style="margin-bottom: 1.4rem;">
           <label for="name" style="display:block; font-family: var(--mono); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.5rem;">Name</label>
           <input id="name" name="name" type="text" required
@@ -55,6 +56,10 @@
           <textarea id="message" name="message" rows="5" required
             style="width:100%; background: var(--ink); border:1px solid rgba(245,239,230,0.2); color: var(--paper); padding:0.8rem; font-family: var(--body); font-size:0.95rem; resize:vertical;"></textarea>
         </div>
+        <input type="hidden" name="_subject" value="New message from Zenergy contact form">
+        <input type="hidden" name="_template" value="table">
+        <input type="hidden" name="_captcha" value="false">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
         <button type="submit" class="btn btn-solid focus-ring">Send message</button>
         <p id="form-status" class="muted" style="margin-top:1rem; font-size:0.85rem;"></p>
       </form>
@@ -116,5 +121,55 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
 <script src="script.js"></script>
+<script>
+// Live contact-form handling (FormSubmit.co) — replaces any placeholder
+// submit handler that script.js may still attach to this form.
+(function () {
+  var oldForm = document.getElementById('contact-form');
+  if (!oldForm) return;
+
+  // Clone the form to strip any previously-attached submit listeners
+  // (e.g. the old placeholder handler in script.js), then swap it in.
+  var form = oldForm.cloneNode(true);
+  oldForm.parentNode.replaceChild(form, oldForm);
+
+  var status = form.querySelector('#form-status');
+  var button = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    var btnLabel = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Sending…';
+    status.textContent = '';
+    status.style.color = '';
+
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new FormData(form)
+    })
+      .then(function (res) {
+        if (res.ok) {
+          status.textContent = "Thanks — your message is on its way. I'll get back to you soon.";
+          form.reset();
+        } else {
+          status.textContent = 'Something went wrong sending that. Please try again or email directly.';
+          status.style.color = '#E63946';
+        }
+      })
+      .catch(function () {
+        status.textContent = 'Something went wrong sending that. Please try again or email directly.';
+        status.style.color = '#E63946';
+      })
+      .finally(function () {
+        button.disabled = false;
+        button.textContent = btnLabel;
+      });
+  });
+})();
+</script>
 </body>
 </html>

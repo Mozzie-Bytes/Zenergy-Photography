@@ -43,6 +43,32 @@
     transform: scale(calc(min(92vw, 1136px) / 1136));
   }
 
+  /* The four outer segments live inside .ring-layer so they can be
+     scaled/faded as one unit, "unfurling" from the true visual centre of
+     the ensō stroke (47.05%, 50% of this box — see the recentring fix). */
+  .ring-layer {
+    position: absolute;
+    inset: 0;
+    transform-origin: 47.05% 50%;
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+  }
+  /* Default (no-JS / JS-not-yet-ready): ring fully visible, nothing to break. */
+  .ring-layer { transform: scale(1); opacity: 1; }
+  /* Once JS confirms it's running, collapse the ring back into the centre
+     and wait for the visitor to reveal it. */
+  .zen-wheel.js-ready .ring-layer {
+    transform: scale(0.001);
+    opacity: 0;
+  }
+  .zen-wheel.js-ready.expanded .ring-layer {
+    transform: scale(1);
+    opacity: 1;
+  }
+  .zen-wheel.js-ready .ring-seg,
+  .zen-wheel.js-ready .seg-label:not(.lbl-center) {
+    transition: opacity 0.4s ease 0.35s;
+  }
+
   .quad-wrap {
     position: absolute;
     inset: 0;
@@ -59,6 +85,7 @@
     text-decoration: none;
     clip-path: url(#enso-clip);
   }
+  .zen-wheel.js-ready:not(.expanded) .ring-seg { pointer-events: none; }
   .ring-seg img {
     position: absolute;
     inset: 0;
@@ -84,6 +111,12 @@
     overflow: hidden;
     text-decoration: none;
     z-index: 5;
+    /* button resets */
+    border: 0;
+    padding: 0;
+    background: none;
+    font: inherit;
+    cursor: pointer;
   }
   .wheel-center img {
     width: 100%;
@@ -96,6 +129,45 @@
     filter: grayscale(0%) brightness(0.95) contrast(1);
     transform: scale(1.06);
   }
+  /* Pulsing ring inviting a first click — only shown once JS is ready and
+     only before the visitor has ever expanded the wheel. */
+  .wheel-center::after {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(245, 239, 230, 0.55);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .zen-wheel.js-ready:not(.touched) .wheel-center::after {
+    animation: enso-pulse 2.6s ease-out infinite;
+  }
+  @keyframes enso-pulse {
+    0%   { transform: scale(0.92); opacity: 0.9; }
+    80%  { transform: scale(1.22); opacity: 0; }
+    100% { transform: scale(1.22); opacity: 0; }
+  }
+  .zen-wheel.expanded .wheel-center::after { display: none; }
+
+  .wheel-hint {
+    position: absolute;
+    left: calc(50% - 33.5px);
+    top: calc(50% + 225px);
+    transform: translate(-50%, 0);
+    width: 260px;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #B8B0A2;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .zen-wheel.js-ready:not(.touched) .wheel-hint { opacity: 1; }
 
   .seg-label {
     position: absolute;
@@ -124,7 +196,67 @@
   .lbl-tr { left: 865px; top: 210px; }
   .lbl-bl { left: 320px; top: 740px; }
   .lbl-br { left: 880px; top: 700px; }
-  .lbl-center { left: 534px; top: 469px; width: 240px; }
+  .lbl-center {
+    left: calc(50% - 33.5px);
+    top: calc(50% + 168px);
+    width: 240px;
+    transform: translate(-50%, 0);
+  }
+
+  /* ---------- Act legend ----------
+     Always visible, independent of whether the ring has been revealed —
+     this is the primary place the five-act structure is legible, and it
+     works with JS off. Hovering/focusing an entry highlights the matching
+     wheel segment (see JS); clicking it jumps straight to that Act. */
+  .act-legend {
+    list-style: none;
+    margin: 2.5rem 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.6rem;
+    max-width: 900px;
+    width: 100%;
+  }
+  .act-legend li { display: contents; }
+  .act-legend a {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid rgba(245, 239, 230, 0.16);
+    border-radius: 6px;
+    text-decoration: none;
+    color: #F5EFE6;
+    font-family: 'Courier New', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .act-legend a:hover,
+  .act-legend a:focus-visible,
+  .act-legend a.is-active {
+    border-color: rgba(245, 239, 230, 0.55);
+    background: rgba(245, 239, 230, 0.06);
+  }
+  .act-legend .swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    box-shadow: 0 0 0 1px rgba(245,239,230,0.25);
+  }
+  .act-legend em {
+    display: block;
+    font-family: Georgia, serif;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+    opacity: 0.75;
+    font-size: 0.82rem;
+    margin-top: 0.15rem;
+  }
 
   .note {
     max-width: 520px;
@@ -149,36 +281,154 @@
   </defs>
 </svg>
 
-<div class="zen-wheel">
+<div class="zen-wheel" id="zenWheel">
   <div class="zen-wheel-inner">
 
-    <div class="quad-wrap tl">
-      <a class="ring-seg" href="#"><img src="photos/waterfalls-01-P7040268.jpg" alt="Act 2 — The Red"></a>
-    </div>
-    <span class="seg-label lbl-tl">Act 2 — The Red<small>Grand Topography</small></span>
+    <div class="ring-layer">
+      <div class="quad-wrap tl">
+        <a class="ring-seg" href="galleries.html#act-2" data-gallery="mountains,rivers,waterfalls,coastlines"><img src="photos/waterfalls-01-P7040268.jpg" alt="Act 2 — The Red"></a>
+      </div>
+      <span class="seg-label lbl-tl">Act 2 — The Red<small>Grand Topography</small></span>
 
-    <div class="quad-wrap tr">
-      <a class="ring-seg" href="#"><img src="photos/forests-01-20250914_142538.jpg" alt="Act 3 — Green &amp; Gold"></a>
-    </div>
-    <span class="seg-label lbl-tr">Act 3 — Green &amp; Gold<small>The Living Bush</small></span>
+      <div class="quad-wrap tr">
+        <a class="ring-seg" href="galleries.html#act-3" data-gallery="forests,wildflowers,creatures"><img src="photos/forests-01-20250914_142538.jpg" alt="Act 3 — Green &amp; Gold"></a>
+      </div>
+      <span class="seg-label lbl-tr">Act 3 — Green &amp; Gold<small>The Living Bush</small></span>
 
-    <div class="quad-wrap bl">
-      <a class="ring-seg" href="#"><img src="photos/portraits-11-P8302053.03.jpg" alt="Act 4 — The Rainbow"></a>
-    </div>
-    <span class="seg-label lbl-bl">Act 4 — The Rainbow<small>Human Element</small></span>
+      <div class="quad-wrap bl">
+        <a class="ring-seg" href="galleries.html#act-4" data-gallery="portraits,streets,story,in-the-zone,tathata"><img src="photos/portraits-11-P8302053.03.jpg" alt="Act 4 — The Rainbow"></a>
+      </div>
+      <span class="seg-label lbl-bl">Act 4 — The Rainbow<small>Human Element</small></span>
 
-    <div class="quad-wrap br">
-      <a class="ring-seg" href="#"><img src="photos/wabi-sabi-04-20250914_142232.jpg" alt="Act 5 — The Yellow"></a>
+      <div class="quad-wrap br">
+        <a class="ring-seg" href="galleries.html#act-5" data-gallery="golden-hour,night,fungi,mu,wabi-sabi"><img src="photos/wabi-sabi-04-20250914_142232.jpg" alt="Act 5 — The Yellow"></a>
+      </div>
+      <span class="seg-label lbl-br">Act 5 — The Yellow<small>Return to Soil</small></span>
     </div>
-    <span class="seg-label lbl-br">Act 5 — The Yellow<small>Return to Soil</small></span>
 
-    <a class="wheel-center" href="#"><img src="photos/all-that-is-02-20250911_224811_2.jpg" alt="Act 1 — Ensō"></a>
-    <span class="seg-label lbl-center">Act 1<small>Ensō</small></span>
+    <button type="button" class="wheel-center" aria-expanded="false" aria-label="Reveal the five acts">
+      <img src="photos/all-that-is-02-20250911_224811_2.jpg" alt="Act 1 — Ensō" data-gallery="all-that-is,skies">
+    </button>
+    <a class="seg-label lbl-center" href="galleries.html#act-1" style="pointer-events:auto; text-decoration:none; color:inherit; cursor:pointer;">Act 1<small>Ensō</small></a>
+    <span class="wheel-hint">Touch the circle</span>
 
   </div>
 </div>
 
-<p class="note">Each photo is clipped to the traced ensō brushstroke via an inline SVG clipPath.</p>
+<ul class="act-legend" aria-label="The five acts">
+  <li><a href="galleries.html#act-1" data-act="center"><span class="swatch" style="background:#1a1a1a;"></span><span>Act 1 — The Black<em>Ensō</em></span></a></li>
+  <li><a href="galleries.html#act-2" data-act="tl"><span class="swatch" style="background:#E5533C;"></span><span>Act 2 — The Red<em>Grand Topography</em></span></a></li>
+  <li><a href="galleries.html#act-3" data-act="tr"><span class="swatch" style="background:linear-gradient(135deg,#5A9B3E,#FFC72C);"></span><span>Act 3 — Green &amp; Gold<em>The Living Bush</em></span></a></li>
+  <li><a href="galleries.html#act-4" data-act="bl"><span class="swatch" style="background:conic-gradient(red,orange,yellow,green,blue,violet,red);"></span><span>Act 4 — The Rainbow<em>Human Element</em></span></a></li>
+  <li><a href="galleries.html#act-5" data-act="br"><span class="swatch" style="background:#FFC72C;"></span><span>Act 5 — Yellow &amp; the Light<em>Return to Soil</em></span></a></li>
+</ul>
+
+<p class="note">Each photo is clipped to the traced ensō brushstroke via an inline SVG clipPath. Tap the ensō to unfurl the ring, or jump straight to any act below.</p>
+
+<script>
+(function () {
+  const wheel = document.getElementById('zenWheel');
+  const centerBtn = wheel.querySelector('.wheel-center');
+  const legendLinks = document.querySelectorAll('.act-legend a');
+  const quadByAct = {
+    tl: wheel.querySelector('.quad-wrap.tl'),
+    tr: wheel.querySelector('.quad-wrap.tr'),
+    bl: wheel.querySelector('.quad-wrap.bl'),
+    br: wheel.querySelector('.quad-wrap.br'),
+  };
+
+  // Progressive enhancement: only collapse the ring once JS has actually
+  // run. If this script fails to load, the ring CSS default (visible,
+  // scale 1) keeps every act reachable with no interaction required.
+  wheel.classList.add('js-ready');
+
+  function setExpanded(open) {
+    wheel.classList.toggle('expanded', open);
+    wheel.classList.add('touched'); // stop the pulse/hint permanently once used
+    centerBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    wheel.querySelectorAll('.ring-seg').forEach((seg) => {
+      seg.style.opacity = open ? '1' : '0';
+      seg.tabIndex = open ? 0 : -1;
+    });
+  }
+  // Ring segments start invisible/untabbable until first expand.
+  wheel.querySelectorAll('.ring-seg').forEach((seg) => {
+    seg.style.opacity = '0';
+    seg.tabIndex = -1;
+  });
+
+  centerBtn.addEventListener('click', () => {
+    setExpanded(!wheel.classList.contains('expanded'));
+  });
+
+  // Hovering/focusing a legend entry highlights the matching wheel
+  // quadrant (and reveals the ring if it's still collapsed) so the
+  // legend <-> wheel relationship is obvious even before the visitor has
+  // clicked anything themselves.
+  legendLinks.forEach((link) => {
+    const act = link.dataset.act;
+    const quad = quadByAct[act];
+    link.addEventListener('mouseenter', () => {
+      link.classList.add('is-active');
+      if (quad) {
+        if (!wheel.classList.contains('expanded')) setExpanded(true);
+        quad.querySelector('img').style.filter = 'grayscale(0%) brightness(0.95) contrast(1)';
+      } else {
+        centerBtn.querySelector('img').style.filter = 'grayscale(0%) brightness(0.95) contrast(1)';
+      }
+    });
+    link.addEventListener('mouseleave', () => {
+      link.classList.remove('is-active');
+      if (quad) {
+        quad.querySelector('img').style.filter = '';
+      } else {
+        centerBtn.querySelector('img').style.filter = '';
+      }
+    });
+  });
+
+  // ---------- Randomised photo per act (unchanged logic from v3) ----------
+  const OBJECT_POSITION = {
+    'photos/waterfalls-01-P7040268.jpg': '50% 35%',
+    'photos/forests-01-20250914_142538.jpg': '50% 50%',
+    'photos/portraits-11-P8302053.03.jpg': '50% 20%',
+    'photos/wabi-sabi-04-20250914_142232.jpg': '50% 50%',
+    'photos/all-that-is-02-20250911_224811_2.jpg': '50% 50%',
+  };
+  function applyObjectPosition(img) {
+    img.style.objectPosition = OBJECT_POSITION[img.getAttribute('src')] || '50% 50%';
+  }
+  async function randomizeWheelPhotos() {
+    const imgs = document.querySelectorAll('.ring-seg img[data-gallery], .wheel-center img[data-gallery]');
+    if (!imgs.length) return;
+    imgs.forEach(applyObjectPosition);
+    let doc;
+    try {
+      const res = await fetch('galleries.html');
+      const html = await res.text();
+      doc = new DOMParser().parseFromString(html, 'text/html');
+    } catch (err) {
+      console.warn('Zen wheel: could not load galleries.html — keeping the default photo for each act.', err);
+      return;
+    }
+    imgs.forEach((img) => {
+      const galleryIds = img.dataset.gallery.split(',').map((s) => s.trim()).filter(Boolean);
+      if (!galleryIds.length) return;
+      const galleryId = galleryIds[Math.floor(Math.random() * galleryIds.length)];
+      const section = doc.querySelector('#' + galleryId);
+      if (!section) return;
+      const candidates = Array.from(section.querySelectorAll('.frame-photo img'))
+        .map((el) => ({ src: el.getAttribute('src'), alt: el.getAttribute('alt') || '' }))
+        .filter((p) => p.src);
+      if (!candidates.length) return;
+      const pick = candidates[Math.floor(Math.random() * candidates.length)];
+      img.setAttribute('src', pick.src);
+      applyObjectPosition(img);
+    });
+  }
+  randomizeWheelPhotos();
+})();
+</script>
 
 </body>
 </html>

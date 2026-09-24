@@ -32,15 +32,17 @@
   .zen-wheel {
     position: relative;
     width: 1136px;
-    height: 938px;
     max-width: 92vw;
+    aspect-ratio: 1136 / 938;
   }
   .zen-wheel-inner {
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 1136px;
     height: 938px;
     transform-origin: top left;
-    transform: scale(calc(min(92vw, 1136px) / 1136));
+    transform: scale(calc(min(92vw, 1136px) / 1136px));
   }
 
   /* The four outer segments live inside .ring-layer so they can be
@@ -286,22 +288,22 @@
 
     <div class="ring-layer">
       <div class="quad-wrap tl">
-        <a class="ring-seg" href="galleries.html#act-2" data-gallery="mountains,rivers,waterfalls,coastlines"><img src="photos/waterfalls-01-P7040268.jpg" alt="Act 2 — The Red"></a>
+        <a class="ring-seg" href="galleries.html#act-2"><img data-gallery="mountains,rivers,waterfalls,coastlines" src="photos/waterfalls-01-P7040268.jpg" alt="Act 2 — The Red"></a>
       </div>
       <span class="seg-label lbl-tl">Act 2 — The Red<small>Grand Topography</small></span>
 
       <div class="quad-wrap tr">
-        <a class="ring-seg" href="galleries.html#act-3" data-gallery="forests,wildflowers,creatures"><img src="photos/forests-01-20250914_142538.jpg" alt="Act 3 — Green &amp; Gold"></a>
+        <a class="ring-seg" href="galleries.html#act-3"><img data-gallery="forests,wildflowers,creatures" src="photos/forests-01-20250914_142538.jpg" alt="Act 3 — Green &amp; Gold"></a>
       </div>
       <span class="seg-label lbl-tr">Act 3 — Green &amp; Gold<small>The Living Bush</small></span>
 
       <div class="quad-wrap bl">
-        <a class="ring-seg" href="galleries.html#act-4" data-gallery="portraits,streets,story,in-the-zone,tathata"><img src="photos/portraits-11-P8302053.03.jpg" alt="Act 4 — The Rainbow"></a>
+        <a class="ring-seg" href="galleries.html#act-4"><img data-gallery="portraits,streets,story,in-the-zone,tathata" src="photos/portraits-11-P8302053.03.jpg" alt="Act 4 — The Rainbow"></a>
       </div>
       <span class="seg-label lbl-bl">Act 4 — The Rainbow<small>Human Element</small></span>
 
       <div class="quad-wrap br">
-        <a class="ring-seg" href="galleries.html#act-5" data-gallery="golden-hour,night,fungi,mu,wabi-sabi"><img src="photos/wabi-sabi-04-20250914_142232.jpg" alt="Act 5 — The Yellow"></a>
+        <a class="ring-seg" href="galleries.html#act-5"><img data-gallery="golden-hour,night,fungi,mu,wabi-sabi" src="photos/wabi-sabi-04-20250914_142232.jpg" alt="Act 5 — The Yellow"></a>
       </div>
       <span class="seg-label lbl-br">Act 5 — The Yellow<small>Return to Soil</small></span>
     </div>
@@ -399,9 +401,24 @@
     img.style.objectPosition = OBJECT_POSITION[img.getAttribute('src')] || '50% 50%';
   }
   async function randomizeWheelPhotos() {
-    const imgs = document.querySelectorAll('.ring-seg img[data-gallery], .wheel-center img[data-gallery]');
+    const imgs = document.querySelectorAll('img[data-gallery]');
     if (!imgs.length) return;
     imgs.forEach(applyObjectPosition);
+
+    // Safety net: if a randomly-picked photo 404s (e.g. referenced in
+    // galleries.html but not actually uploaded to /photos on the live
+    // server), silently fall back to the photo baked into this file
+    // rather than leaving an empty/broken slot for a visitor to see.
+    imgs.forEach((img) => {
+      const fallbackSrc = img.getAttribute('src');
+      img.addEventListener('error', function onErr() {
+        if (img.getAttribute('src') !== fallbackSrc) {
+          img.setAttribute('src', fallbackSrc);
+          applyObjectPosition(img);
+        }
+      });
+    });
+
     let doc;
     try {
       const res = await fetch('galleries.html');

@@ -7,6 +7,13 @@
 <title>Galleries — Zenergy</title>
 <meta content="Zenergy's photo galleries, told in five acts — from the cosmic and the elemental through to the human and the worn." name="description"/>
 <link href="style.css" rel="stylesheet"/>
+<style>
+  /* Anchor links (galleries.html#act-3, #mountains, ...) land BELOW the sticky header.
+     The header is ~173px tall (140px logo + padding + sprockets); each section also has
+     its own top padding, so subtract that and leave a little breathing room. */
+  :root { --header-h: 173px; }
+  section[id] { scroll-margin-top: calc(var(--header-h) + 1.5rem - clamp(3rem, 8vw, 6rem)); }
+</style>
 </head>
 <body>
 <header class="site-header">
@@ -268,7 +275,7 @@
 <div class="wrap"><div class="divider"></div></div>
 <section id="act-3" style="padding-bottom:0;">
 <div class="wrap center" style="max-width:640px;">
-<span class="eyebrow"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#5A9B3E;margin-right:8px;vertical-align:middle;box-shadow:0 0 0 1px rgba(245,239,230,0.25);"></span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#FFC72C;margin-right:8px; margin-left:-4px;vertical-align:middle;box-shadow:0 0 0 1px rgba(245,239,230,0.25);"></span>Act 3 — The Green &amp; Gold</span>
+<span class="eyebrow"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#5A9B3E;margin-right:8px;vertical-align:middle;box-shadow:0 0 0 1px rgba(245,239,230,0.25);"></span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#FFC72C;margin-right:8px; margin-left:-4px;vertical-align:middle;box-shadow:0 0 0 1px rgba(245,239,230,0.25);"></span>Act 3 — The Green &amp; The Gold</span>
 <h2 style="margin-top:0.4rem;">The Living, Burning Bush</h2>
 <p class="muted" style="max-width:52ch; margin:0.6rem auto 0;">From the sky down to the structural bones of the land — the canopy, the flowers, and everything that moves through it.</p>
 </div>
@@ -848,7 +855,7 @@
 <div class="wrap"><div class="divider"></div></div>
 <section id="act-5" style="padding-bottom:0;">
 <div class="wrap center" style="max-width:640px;">
-<span class="eyebrow"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#FFC72C;margin-right:8px;vertical-align:middle;box-shadow:0 0 0 1px rgba(245,239,230,0.25);"></span>Act 5 — The Yellow &amp; the Light</span>
+<span class="eyebrow"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#FFC72C;margin-right:8px;vertical-align:middle;box-shadow:0 0 0 1px rgba(245,239,230,0.25);"></span>Act 5 — The Yellow &amp; The Light</span>
 <h2 style="margin-top:0.4rem;">The Return to the Soil</h2>
 <p class="muted" style="max-width:52ch; margin:0.6rem auto 0;">The imperfect close. Where the light goes at the end of the day, and what's left after everything settles.</p>
 </div>

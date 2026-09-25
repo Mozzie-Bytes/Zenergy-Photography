@@ -67,6 +67,22 @@
   }
   .act-panel.is-active img { transform: scale(1); }
 
+  /* Portraits on the wide band: a face-height photo stretched to a 1440px-wide
+     slice puts the eyes and nose where the ring sits — focal point can't fix
+     that, there's no room to move sideways. So a "portraits" gallery photo is
+     shown at its own width instead of stretched full-bleed: full band height,
+     natural aspect, pinned left, the rest of the band left dark. The mask on
+     the image itself (not a separate overlay) softens the cut edge and scales
+     with whatever width the photo ends up at, at any viewport. */
+  .act-panel.is-portrait-crop { background: var(--ink); }
+  .act-panel.is-portrait-crop img {
+    width: auto;
+    max-width: none;
+    object-position: left center;
+    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
+            mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
+  }
+
   /* ---------- Layer 1: the wheel (unchanged), sitting on top ---------- */
   .zen-wheel-wrap {
     position: relative;
@@ -179,6 +195,28 @@
                            0 0 0 8px rgba(20,18,26,0.35), 0 12px 50px rgba(0,0,0,0.6); }
   }
   .zen-wheel.js-ready:not(.expanded) .wheel-center { animation: enso-breathe 4.2s ease-in-out infinite; }
+
+  /* The hollow: once the ring is open, the gap between the Act 1 disc and the
+     brush is otherwise just dark scrim. This is a soft moon-paper glow hugging
+     the disc's rim, fading out before it reaches the ring. Always neutral,
+     regardless of which act is highlighted — the ring segments carry the act
+     colour, this doesn't. Sized in the wheel's own unscaled coordinate space
+     (like .wheel-center) so it scales identically at every viewport. The
+     ring's brush edge is hand-drawn and comes as close as ~40 units from the
+     disc in places, so this is deliberately kept tight — measured against the
+     real wheel, not guessed. Sits behind the ring segments (inserted before
+     .ring-layer in the markup) so it never paints over the brush itself. */
+  .wheel-hollow-glow {
+    position: absolute; left: calc(50% - 33.5px); top: 50%;
+    width: 350px; height: 350px; transform: translate(-50%, -50%);
+    border-radius: 50%; pointer-events: none;
+    /* no z-index: stacks by DOM order (after .ring-ghost, before .ring-layer)
+       among these auto-level siblings, so it never outranks .wheel-center (z:5) */
+    background: radial-gradient(circle, transparent 0%, transparent 80%,
+      rgba(245,239,230,0.34) 88%, rgba(245,239,230,0.16) 96%, transparent 100%);
+    opacity: 0; transition: opacity 0.6s ease;
+  }
+  .zen-wheel.expanded .wheel-hollow-glow { opacity: 1; }
 
   /* Ghost ensō: a faint, breathing outline of the full brush while the ring is folded,
      so there's something to see (and a hint of what will bloom) around the dark disc. */
@@ -399,6 +437,7 @@
           <div class="zen-wheel-inner">
 
             <div class="ring-ghost" aria-hidden="true"><i></i></div>
+            <div class="wheel-hollow-glow" aria-hidden="true"></div>
 
             <div class="ring-layer">
               <div class="quad-wrap bl">
@@ -606,19 +645,42 @@
     'photos/wabi-sabi-04-20250914_142232.jpg': '50% 50%',
     'photos/all-that-is-02-20250911_224811_2.jpg': '50% 50%',
   };
-  // The background band is very wide and short, so photos with no entry above
-  // are cropped to a slice. Portraits keep faces by leaning toward the top.
-  const PANEL_DEFAULT_POSITION = { center: '50% 50%', bl: '50% 40%', tl: '50% 50%', tr: '50% 22%', br: '50% 50%' };  // by ring position: Act 2 bl, Act 3 tl, Act 4 tr (faces), Act 5 br
+  // The background band is very wide and short (about 3.6:1 at desktop widths), so a photo
+  // is cropped to a slice. Where that slice sits depends on the subject, not on which ring
+  // segment the photo landed in: faces in a "portraits" shot are high, but the people in an
+  // "in-the-zone" shot sit near the middle. So the default focal point is keyed on the
+  // GALLERY the photo belongs to (the id is the start of every filename, e.g.
+  // "in-the-zone-06-P8221373.jpg"). OBJECT_POSITION above still wins for any single photo
+  // that needs its own tweak. Values were checked against real photos from: coastlines,
+  // mountains, creatures, wildflowers, portraits, in-the-zone, story, streets,
+  // golden-hour, night, wabi-sabi. The rest are unchanged starting points.
+  const GALLERY_POSITION = {
+    mountains: '50% 40%', rivers: '50% 40%', waterfalls: '50% 40%', coastlines: '50% 40%',
+    forests: '50% 50%', wildflowers: '50% 40%', creatures: '50% 22%',
+    portraits: '50% 22%', streets: '50% 38%', story: '50% 30%', 'in-the-zone': '50% 40%', tathata: '50% 50%',
+    'golden-hour': '50% 50%', night: '50% 50%', fungi: '50% 50%', mu: '50% 50%', 'wabi-sabi': '50% 50%',
+  };
+  // last resort, by ring position, for a photo whose gallery isn't listed above
+  const PANEL_DEFAULT_POSITION = { center: '50% 50%', bl: '50% 40%', tl: '50% 50%', tr: '50% 35%', br: '50% 50%' };
 
+  function galleryOf(src) {
+    const file = (src || '').split('/').pop();
+    return file.replace(/-\d+-.*$/, '');     // "in-the-zone-06-P8221373.jpg" -> "in-the-zone"
+  }
   function positionFor(img, act) {
-    return OBJECT_POSITION[img.getAttribute('src')] || PANEL_DEFAULT_POSITION[act] || '50% 50%';
+    const src = img.getAttribute('src');
+    return OBJECT_POSITION[src] || GALLERY_POSITION[galleryOf(src)] || PANEL_DEFAULT_POSITION[act] || '50% 50%';
   }
   function applyWheelPosition(img) {
     img.style.objectPosition = OBJECT_POSITION[img.getAttribute('src')] || '50% 50%';
   }
   function applyPanelPosition(act) {
-    const p = panels[act] && panels[act].querySelector('img');
-    if (p) p.style.objectPosition = positionFor(p, act);
+    const panelEl = panels[act];
+    const p = panelEl && panelEl.querySelector('img');
+    if (!p) return;
+    const isPortrait = galleryOf(p.getAttribute('src')) === 'portraits';
+    panelEl.classList.toggle('is-portrait-crop', isPortrait);
+    p.style.objectPosition = isPortrait ? '' : positionFor(p, act);
   }
   function mirrorToPanel(act, src) {
     const p = panels[act] && panels[act].querySelector('img');

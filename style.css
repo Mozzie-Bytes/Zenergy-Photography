@@ -455,3 +455,404 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   outline: 2px solid var(--goldenhour);
   outline-offset: 3px;
 }
+
+/* ============================================
+   HOMEPAGE — Ensō wheel (Acts 1–5, homepage-section-prototype-v3)
+   Full-bleed background band + brush-ring wheel + act index.
+   Markup lives in index.html; JS stays inline there for now (see notes
+   in index.html) pending a Safari/iOS check.
+   ============================================ */
+
+/* ---------- Stage: full-bleed band, exactly as tall as the wheel ----------
+   The stage sits OUTSIDE .wrap so it can run edge to edge. Its height comes
+   from the wheel inside it (aspect-ratio box), so the background layer is
+   always the same vertical extent as the ensō, at every viewport width. */
+.enso-stage {
+  position: relative;
+  width: 100%;
+  margin-top: 2rem;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ink);
+}
+
+/* ---------- Layer 0: the acts, as full-bleed background panels ---------- */
+.act-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  /* soften only the top/bottom edges into the page; left/right run to the margins */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+          mask-image: linear-gradient(to bottom, transparent 0, #000 14%, #000 86%, transparent 100%);
+}
+/* scrim: keeps the ring legible over any photo */
+.act-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 85% at 47% 50%, rgba(20,18,26,0.10) 0%, rgba(20,18,26,0.55) 100%);
+}
+.act-panel {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  /* visibility flips after the fade-out so the outgoing act cross-fades */
+  transition: opacity 0.9s ease, visibility 0s linear 0.9s;
+}
+.act-panel.is-active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.9s ease, visibility 0s linear 0s;
+}
+.act-panel img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 50%;
+  filter: grayscale(15%) brightness(0.62) contrast(1.05);
+  transform: scale(1.05);
+  transition: transform 8s ease-out;
+}
+.act-panel.is-active img { transform: scale(1); }
+
+/* Portraits on the wide band: a face-height photo stretched to a 1440px-wide
+   slice puts the eyes and nose where the ring sits — focal point can't fix
+   that, there's no room to move sideways. So a "portraits" gallery photo is
+   shown at its own width instead of stretched full-bleed: full band height,
+   natural aspect, pinned left, the rest of the band left dark. The mask on
+   the image itself (not a separate overlay) softens the cut edge and scales
+   with whatever width the photo ends up at, at any viewport. */
+.act-panel.is-portrait-crop { background: var(--ink); }
+.act-panel.is-portrait-crop img {
+  width: auto;
+  max-width: none;
+  object-position: left center;
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
+          mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
+}
+
+/* ---------- Layer 1: the wheel (unchanged), sitting on top ---------- */
+.zen-wheel-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  /* let clicks fall through the empty parts of the wheel box to the
+     background panel underneath; only the ensō pieces are interactive */
+  pointer-events: none;
+}
+.zen-wheel {
+  position: relative;
+  width: 1136px;
+  max-width: 480px;
+  aspect-ratio: 1136 / 938;
+  pointer-events: none;
+}
+.zen-wheel .ring-seg,
+.zen-wheel .wheel-center,
+.zen-wheel .lbl-center { pointer-events: auto; }
+
+.zen-wheel-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1136px;
+  height: 938px;
+  transform-origin: top left;
+  /* Fallback = 480px wheel. Browsers that support length÷length in calc() get
+     the fluid version; everything else is corrected by the script below, which
+     sets the same scale inline on load/resize. (Without a working scale the
+     1136px-wide wheel would be clipped by the stage.) */
+  transform: scale(0.4225);
+}
+@supports (transform: scale(calc(1px / 1px))) {
+  .zen-wheel-inner { transform: scale(calc(min(480px, 92vw) / 1136px)); }
+}
+.ring-layer {
+  position: absolute;
+  inset: 0;
+  transform-origin: 47.05% 50%;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+  /* lifts the brush off the photo behind it */
+  filter: drop-shadow(0 8px 30px rgba(0,0,0,0.6));
+}
+.ring-layer { transform: scale(1); opacity: 1; }
+.zen-wheel.js-ready .ring-layer { transform: scale(0.001); opacity: 0; }
+.zen-wheel.js-ready.expanded .ring-layer { transform: scale(1); opacity: 1; }
+
+.quad-wrap { position: absolute; inset: 0; }
+
+/* Sequenced bloom: the ring "draws" itself in story order, Act 2 → 3 → 4 → 5,
+   following the brush stroke (bottom-left, then clockwise). Each piece — and its
+   "Act N" label — fades in on its own delay (--d). Folding away is instant/together. */
+.quad-wrap, .seg-label { transition: opacity 0.6s ease; }
+.quad-wrap.bl, .seg-label.lbl-bl { --d: 0.15s; }
+.quad-wrap.tl, .seg-label.lbl-tl { --d: 0.42s; }
+.quad-wrap.tr, .seg-label.lbl-tr { --d: 0.69s; }
+.quad-wrap.br, .seg-label.lbl-br { --d: 0.96s; }
+.zen-wheel.js-ready:not(.expanded) .quad-wrap,
+.zen-wheel.js-ready:not(.expanded) .seg-label { opacity: 0; transition-delay: 0s; }
+.zen-wheel.js-ready.expanded .quad-wrap,
+.zen-wheel.js-ready.expanded .seg-label { opacity: 1; transition-delay: var(--d, 0s); }
+.quad-wrap.tl { clip-path: inset(0 50% 50% 0); }
+.quad-wrap.tr { clip-path: inset(0 0 50% 50%); }
+.quad-wrap.bl { clip-path: inset(50% 50% 0 0); }
+.quad-wrap.br { clip-path: inset(50% 0 0 50%); }
+
+.ring-seg {
+  position: absolute; inset: 0; display: block; text-decoration: none;
+  clip-path: url(#enso-clip);
+  /* Safari/WebKit has a long-documented history of SVG clip-path url()
+     references failing to compose correctly with a transform on an
+     ancestor (this element sits inside .zen-wheel-inner, which is scaled).
+     Promoting this element to its own compositor layer is the standard
+     fix for that class of bug. Added as a precaution ahead of a Safari/iOS
+     check — remove if testing shows it isn't needed. */
+  will-change: transform;
+}
+.zen-wheel.js-ready:not(.expanded) .ring-seg { pointer-events: none; }
+.ring-seg img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: 50% 50%;
+  filter: grayscale(30%) brightness(0.65) contrast(1.05);
+  transition: filter 0.35s ease, transform 0.5s ease;
+}
+.ring-seg:hover img, .ring-seg:focus-visible img,
+.ring-seg.is-lit img {
+  filter: grayscale(0%) brightness(0.95) contrast(1);
+}
+.ring-seg:hover img, .ring-seg:focus-visible img { transform: scale(1.06); }
+
+.wheel-center {
+  position: absolute; width: 300px; height: 300px;
+  left: calc(50% - 33.5px); top: 50%; transform: translate(-50%, -50%);
+  border-radius: 50%; overflow: hidden; z-index: 5;
+  border: 0; padding: 0; background: none; font: inherit; cursor: pointer;
+  /* moonlit rim: thin light edge + dark halo + drop shadow (sizes are in the wheel's
+     unscaled px, so they look ~40% as big on screen) */
+  box-shadow: 0 0 0 5px rgba(245,239,230,0.35), 0 0 0 8px rgba(20,18,26,0.35), 0 12px 50px rgba(0,0,0,0.6);
+}
+.wheel-center img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
+  filter: grayscale(30%) brightness(0.65) contrast(1.05);
+  transition: filter 0.35s ease, transform 0.5s ease;
+}
+.wheel-center:hover img, .wheel-center:focus-visible img,
+.wheel-center.is-lit img {
+  filter: grayscale(0%) brightness(0.95) contrast(1);
+}
+.wheel-center:hover img, .wheel-center:focus-visible img { transform: scale(1.06); }
+/* Act 1 "breathes" while the ring is folded away: the rim brightens and a soft
+   moonlight glow swells, then settles (4.2s cycle). Animated on the button itself
+   because a ring drawn outside it would be clipped by overflow:hidden. */
+@keyframes enso-breathe {
+  0%, 100% { box-shadow: 0 0 0 5px rgba(245,239,230,0.35), 0 0 50px 6px rgba(245,239,230,0.16),
+                         0 0 0 8px rgba(20,18,26,0.35), 0 12px 50px rgba(0,0,0,0.6); }
+  50%      { box-shadow: 0 0 0 8px rgba(245,239,230,0.92), 0 0 140px 34px rgba(245,239,230,0.38),
+                         0 0 0 8px rgba(20,18,26,0.35), 0 12px 50px rgba(0,0,0,0.6); }
+}
+.zen-wheel.js-ready:not(.expanded) .wheel-center { animation: enso-breathe 4.2s ease-in-out infinite; }
+
+/* The hollow: once the ring is open, the gap between the Act 1 disc and the
+   brush is otherwise just dark scrim. This is a soft moon-paper glow hugging
+   the disc's rim, fading out before it reaches the ring. Always neutral,
+   regardless of which act is highlighted — the ring segments carry the act
+   colour, this doesn't. Sized in the wheel's own unscaled coordinate space
+   (like .wheel-center) so it scales identically at every viewport. The
+   ring's brush edge is hand-drawn and comes as close as ~40 units from the
+   disc in places, so this is deliberately kept tight — measured against the
+   real wheel, not guessed. Sits behind the ring segments (inserted before
+   .ring-layer in the markup) so it never paints over the brush itself. */
+.wheel-hollow-glow {
+  position: absolute; left: calc(50% - 33.5px); top: 50%;
+  width: 350px; height: 350px; transform: translate(-50%, -50%);
+  border-radius: 50%; pointer-events: none;
+  /* no z-index: stacks by DOM order (after .ring-ghost, before .ring-layer)
+     among these auto-level siblings, so it never outranks .wheel-center (z:5) */
+  background: radial-gradient(circle, transparent 0%, transparent 80%,
+    rgba(245,239,230,0.34) 88%, rgba(245,239,230,0.16) 96%, transparent 100%);
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.zen-wheel.expanded .wheel-hollow-glow { opacity: 1; }
+
+/* Ghost ensō: a faint, breathing outline of the full brush while the ring is folded,
+   so there's something to see (and a hint of what will bloom) around the dark disc. */
+.ring-ghost {
+  position: absolute; inset: 0; pointer-events: none;
+  clip-path: url(#enso-clip);
+  opacity: 0; transition: opacity 0.6s ease;
+}
+.ring-ghost i {
+  display: block; width: 100%; height: 100%;
+  background: rgba(245, 239, 230, 0.12);
+  animation: ghost-breathe 4.2s ease-in-out infinite;
+}
+@keyframes ghost-breathe { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+.zen-wheel.js-ready:not(.expanded) .ring-ghost { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .zen-wheel.js-ready:not(.expanded) .wheel-center {
+    animation: none;
+    box-shadow: 0 0 0 7px rgba(245,239,230,0.75), 0 0 90px 20px rgba(245,239,230,0.28),
+                0 0 0 8px rgba(20,18,26,0.35), 0 12px 50px rgba(0,0,0,0.6);
+  }
+  .ring-ghost i { animation: none; opacity: 0.8; }
+  .quad-wrap, .seg-label { transition-delay: 0s !important; }
+}
+
+.wheel-hint {
+  position: absolute; left: calc(50% - 33.5px); top: calc(50% + 225px);
+  transform: translate(-50%, 0); width: 320px; text-align: center;
+  font-family: var(--mono); font-size: 1.3rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--paper-dim);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+  opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 4;
+}
+.zen-wheel.js-ready:not(.touched) .wheel-hint { opacity: 1; }
+
+.lbl-center {
+  position: absolute; left: calc(50% - 33.5px); top: calc(50% + 168px); width: 240px;
+  transform: translate(-50%, 0); text-align: center; z-index: 4;
+  text-decoration: none; color: inherit; cursor: pointer;
+  font-family: var(--mono); font-size: 2.4rem; letter-spacing: 0.08em; text-transform: uppercase;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+}
+.lbl-center small { display: block; font-family: Georgia, serif; font-style: italic; text-transform: none; letter-spacing: 0; opacity: 0.75; margin-top: 0.2rem; font-size: 0.85rem; }
+
+/* ---------- Act caption: the highlighted act's name + descriptor, on the background ----------
+   Lives in its own layer (not inside the masked panels) so it stays crisp, and
+   cross-fades with the panels. Real px, so it never shrinks with the wheel. */
+.act-captions { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.act-caption {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  color: var(--paper);
+  text-shadow: 0 2px 16px rgba(0,0,0,0.9), 0 0 3px rgba(0,0,0,0.85);
+}
+.act-caption.is-active { opacity: 1; }
+.act-caption .cap-num  { font-family: var(--mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent, var(--paper)); }
+.act-caption .cap-name { font-family: var(--display); }
+.act-caption .cap-desc { font-family: var(--tagline-serif), Georgia, serif; font-style: italic; }
+.act-caption .cap-cta  { font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: inherit; text-decoration: none; pointer-events: none; }
+.act-caption.is-active .cap-cta { pointer-events: auto; }
+.act-caption .cap-cta:hover, .act-caption .cap-cta:focus-visible { text-decoration: underline; text-underline-offset: 4px; }
+
+/* wide screens: big caption in the left margin, in line with the section heading */
+@media (min-width: 1100px) {
+  .act-bg::before {   /* soft dark wash so the caption reads on any photo */
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(90deg, rgba(20,18,26,0.6) 0%, rgba(20,18,26,0) 36%);
+  }
+  .act-caption {
+    left: max(var(--gutter), calc((100% - var(--max)) / 2 + var(--gutter)));
+    top: 50%;
+    transform: translateY(-50%);
+    width: 250px;
+  }
+  .act-caption .cap-num  { display: block; font-size: 0.8rem; }
+  .act-caption .cap-sep  { display: none; }
+  .act-caption .cap-name { display: block; font-size: clamp(2.4rem, 3.4vw, 3.3rem); line-height: 1; margin-top: 0.35rem; }
+  .act-caption .cap-desc { display: block; font-size: 1.3rem; margin-top: 0.6rem; opacity: 0.92; }
+  .act-caption .cap-cta  { display: block; font-size: 0.7rem; margin-top: 1.1rem; opacity: 0.85; }
+}
+/* narrower screens: one compact line across the top strip above the ring */
+@media (max-width: 1099px) {
+  .act-caption { top: 8px; left: 50%; transform: translateX(-50%); width: calc(100% - 1rem); text-align: center; white-space: nowrap; }
+  .act-caption .cap-num, .act-caption .cap-name, .act-caption .cap-sep {
+    display: inline; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .act-caption .cap-desc, .act-caption .cap-cta { display: none; }
+}
+@media (max-width: 520px) {
+  .act-caption .cap-num, .act-caption .cap-name, .act-caption .cap-sep { font-size: 0.62rem; letter-spacing: 0.05em; }
+}
+
+/* "Act N" on each ring segment (inside the scaled wheel, so sized up to stay readable) */
+.seg-label {
+  position: absolute; transform: translate(-50%, -50%); width: 260px; text-align: center;
+  color: var(--paper); font-family: var(--mono); font-size: 2.4rem; letter-spacing: 0.08em;
+  text-transform: uppercase; pointer-events: none; z-index: 6;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.95), 0 0 4px rgba(0,0,0,0.95);
+}
+/* positions measured from the brush's thickest part in each quadrant */
+.lbl-tl { left: 235px; top: 400px; }
+.lbl-tr { left: 816px; top: 382px; }
+.lbl-bl { left: 408px; top: 739px; }
+.lbl-br { left: 812px; top: 574px; }
+
+/* ---------- Layer 3: act index (replaces the 2×2 grid's links) ----------
+   Lives in the strip below the brush (the ensō ends ~89% of the way down its
+   box), so it never collides with the ring. Real px, not scaled with the wheel,
+   so it stays readable at the homepage's 480px wheel size. */
+.act-index {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: calc(100% - 1rem);
+}
+.act-index a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.42rem 0.8rem;
+  border: 1px solid rgba(245, 239, 230, 0.22);
+  border-radius: 999px;
+  background: rgba(20, 18, 26, 0.62);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+  color: var(--paper);
+  text-decoration: none;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+/* bigger touch target than the visible pill */
+.act-index a::after { content: ""; position: absolute; inset: -8px -2px; }
+.act-index a { --accent: #C9C2B8; transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease; }
+.act-index a:hover,
+.act-index a:focus-visible {
+  border-color: rgba(245, 239, 230, 0.85);
+  background: rgba(20, 18, 26, 0.9);
+}
+/* the highlighted act: inverted pill with a coloured halo, lifted slightly */
+.act-index a.is-active {
+  background: var(--paper);
+  color: var(--ink);
+  border-color: var(--paper);
+  box-shadow: 0 0 0 3px var(--accent), 0 8px 22px rgba(0,0,0,0.55);
+  transform: translateY(-3px);
+}
+.act-index a:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+.act-index .swatch {
+  width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto;
+  box-shadow: 0 0 0 1px rgba(245,239,230,0.3);
+}
+@media (max-width: 1000px) {
+  .act-index .t { display: none; }            /* "Act 2 — The Red" -> "Act 2" */
+}
+@media (max-width: 520px) {
+  .act-index { gap: 0.3rem; }
+  .act-index a { padding: 0.28rem 0.55rem; font-size: 0.62rem; gap: 0.35rem; }
+  .act-index .w { display: none; }            /* "Act 2" -> "2" */
+  .act-index .swatch { width: 8px; height: 8px; }
+}

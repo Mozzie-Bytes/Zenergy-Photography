@@ -451,6 +451,11 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
 .accent-amber { color: var(--goldenhour); }
 .accent-red { color: var(--kodachrome); }
 
+/* Anchor targets shouldn't land hidden under the sticky header */
+[id] {
+  scroll-margin-top: 160px;
+}
+
 .focus-ring:focus-visible {
   outline: 2px solid var(--goldenhour);
   outline-offset: 3px;

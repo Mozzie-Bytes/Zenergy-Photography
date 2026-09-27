@@ -69,38 +69,51 @@ document.addEventListener('DOMContentLoaded', () => {
     frames.forEach((f) => grid.appendChild(f));
   });
 
-  // ---------- Gallery preview / expand-on-click ----------
+  // ---------- Gallery preview / expand-on-click, + back-to-wheel link ----------
   // Each gallery shows a small taste by default. Clicking the gallery's
   // name/number (or the "view all" button) reveals the rest. Photos stay
   // lazy-loaded either way, so nothing downloads until it's actually shown.
+  // Every gallery also gets a link back to the homepage wheel, sitting to
+  // the right of that same toggle (or alone, for galleries with nothing to expand).
   const PREVIEW_COUNT = 3;
   document.querySelectorAll('.gallery-grid').forEach((grid) => {
     const frameCount = Array.from(grid.children).filter(el => el.classList.contains('frame')).length;
-    if (frameCount <= PREVIEW_COUNT) return; // nothing worth collapsing
 
-    grid.classList.add('collapsed');
+    const footer = document.createElement('div');
+    footer.className = 'gallery-footer';
+    grid.insertAdjacentElement('afterend', footer);
 
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'gallery-toggle focus-ring';
-    toggle.textContent = `View all ${frameCount} photos →`;
-    grid.insertAdjacentElement('afterend', toggle);
+    if (frameCount > PREVIEW_COUNT) {
+      grid.classList.add('collapsed');
 
-    function setExpanded(open) {
-      grid.classList.toggle('collapsed', !open);
-      toggle.textContent = open ? 'Show less ↑' : `View all ${frameCount} photos →`;
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'gallery-toggle focus-ring';
+      toggle.textContent = `View all ${frameCount} photos →`;
+      footer.appendChild(toggle);
+
+      function setExpanded(open) {
+        grid.classList.toggle('collapsed', !open);
+        toggle.textContent = open ? 'Show less ↑' : `View all ${frameCount} photos →`;
+      }
+
+      toggle.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
+
+      // Clicking the gallery's own name/number does the same thing.
+      const section = grid.closest('section');
+      const h2 = section && section.querySelector('.section-head h2');
+      const titleWrap = h2 && h2.closest('div');
+      if (titleWrap) {
+        titleWrap.style.cursor = 'pointer';
+        titleWrap.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
+      }
     }
 
-    toggle.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
-
-    // Clicking the gallery's own name/number does the same thing.
-    const section = grid.closest('section');
-    const h2 = section && section.querySelector('.section-head h2');
-    const titleWrap = h2 && h2.closest('div');
-    if (titleWrap) {
-      titleWrap.style.cursor = 'pointer';
-      titleWrap.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
-    }
+    const backLink = document.createElement('a');
+    backLink.href = 'index.html#ensoStage';
+    backLink.className = 'gallery-back-link focus-ring';
+    backLink.textContent = '← Back to the wheel';
+    footer.appendChild(backLink);
   });
 
   // Mark active nav link based on current page

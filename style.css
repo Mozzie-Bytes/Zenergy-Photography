@@ -888,3 +888,25 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   .act-index .w { display: none; }            /* "Act 2" -> "2" */
   .act-index .swatch { width: 8px; height: 8px; }
 }
+
+/* ---------- Journal: occasional quote line ---------- */
+.journal-quote {
+  font-family: var(--tagline-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 1.2rem;
+  line-height: 1.4;
+  color: var(--paper);
+  margin: 1.6rem 0 1.4rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--goldenhour);
+}
+.journal-quote span {
+  display: block;
+  margin-top: 0.3rem;
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slidegrey);
+}

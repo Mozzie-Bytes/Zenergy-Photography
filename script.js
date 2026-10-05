@@ -58,15 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------- Shuffle each gallery's photo order ----------
   // A fresh random arrangement every time the page loads — nothing pinned
-  // down twice. Runs before the preview/collapse logic below, so the
-  // 3-photo "taste" shown by default is different on every visit too.
+  // down twice. Frames marked class="frame pick" are the showcase: they are
+  // shuffled among themselves but always sit at the front, so the small taste
+  // shown by default is the photographer's own choice. A gallery with no picks
+  // is fully random. Runs before the preview/collapse logic below.
   document.querySelectorAll('.gallery-grid').forEach((grid) => {
     const frames = Array.from(grid.children);
     for (let i = frames.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [frames[i], frames[j]] = [frames[j], frames[i]];
     }
-    frames.forEach((f) => grid.appendChild(f));
+    const picks = frames.filter((f) => f.classList.contains('pick'));
+    const rest = frames.filter((f) => !f.classList.contains('pick'));
+    picks.concat(rest).forEach((f) => grid.appendChild(f));
   });
 
   // ---------- Gallery preview / expand-on-click, + back-to-wheel link ----------

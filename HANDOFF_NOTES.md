@@ -9,10 +9,13 @@ site files to a new chat to pick up without re-explaining the conventions below.
   (`#ensoStage`) → journal teaser → footer.
 - `about.html` — the philosophy/story page, Act-by-Act breakdown, kit notes, roll history.
 - `galleries.html` — full gallery grid, all 5 Acts and their sub-galleries.
-- `journal.html` — **not yet created**. Linked from nav/footer/homepage already; page itself
-  still needs building.
+- `journal.html` — built (entries as `<article class="card reveal">`, newest at top; latest is
+  the BMX Bowl Battle). Linked from nav/footer/homepage.
 - `style.css`, `script.js` — shared styles/behaviour (incl. the Enso wheel widget).
-- `photos/` — image folder. Currently only holds a manifest file, no real images yet.
+- `photos/` — full-size images + `photos in folder.txt` (manifest). `photos/thumbs/` holds
+  small copies (same file names) made by `make_thumbs.py`; galleries load those and fetch the
+  full-size file only when a photo is clicked. The lightbox supports zoom (wheel / pinch /
+  double-click / + - buttons, drag to pan).
 
 ## The Five Acts (colour scheme, ties to Aboriginal flag colours — see about.html)
 1. **The Black** — The Cosmic & Symbolic Spark
@@ -62,6 +65,7 @@ display name (e.g. Ensō's slug is `all-that-is`, not `enso`).
   (`btn btn-solid`) so it reads as clickable — it was previously plain text and easy to miss.
 
 ## Outstanding / likely next tasks
-- [ ] Add real photos into `photos/`, following the slug convention above.
-- [ ] Build `journal.html` (currently just linked, not built).
+- [ ] Run `python make_thumbs.py` after adding photos (only new ones are processed).
+- [ ] Manually delete wildflowers-16-P8210851.051.jpg and wildflowers-17-P8210888.051.jpg
+      from `photos/` and `photos/thumbs/` (already removed from the page and manifest).
 - [ ] Minor content tweaks as they come up — structure shouldn't need major changes.

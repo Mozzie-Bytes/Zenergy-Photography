@@ -1,2 +1,8 @@
 .git
 node_modules
+HANDOFF_NOTES.md
+make_thumbs.py
+homepage-section-prototype-v3.html
+wrangler.toml
+.assetsignore
+photos/photos in folder.txt

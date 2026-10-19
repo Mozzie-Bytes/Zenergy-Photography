@@ -290,6 +290,7 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   justify-content: center;
   flex-direction: column;
   cursor: zoom-out;
+  overflow: hidden;
 }
 .lightbox-overlay.open { display: flex; }
 .lightbox-overlay img {
@@ -297,8 +298,38 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   max-height: 82vh;
   object-fit: contain;
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-  cursor: default;
+  cursor: zoom-in;
+  touch-action: none;        /* we handle pinch / drag ourselves */
+  user-select: none;
+  -webkit-user-drag: none;
+  transform-origin: center center;
+  will-change: transform;
 }
+.lightbox-overlay.zoomed img { cursor: grab; }
+.lightbox-overlay.zoomed img:active { cursor: grabbing; }
+.lightbox-tools {
+  position: absolute;
+  top: 1.2rem;
+  left: 1.5rem;
+  display: flex;
+  gap: 0.4rem;
+  z-index: 2;
+}
+.lightbox-zoom {
+  background: none;
+  border: 1px solid rgba(245,239,230,0.3);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  line-height: 1;
+  width: 2.4rem;
+  height: 2.2rem;
+  cursor: pointer;
+}
+.lightbox-zoom:hover { background: rgba(245,239,230,0.1); }
+.lightbox-hint { margin-left: 1.2rem; opacity: 0.55; }
+.lightbox-overlay.zoomed .lightbox-caption { opacity: 0.6; }
+@media (max-width: 600px) { .lightbox-hint { display: none; } }
 .lightbox-caption {
   font-family: var(--mono);
   font-size: 0.72rem;
@@ -320,6 +351,7 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   padding: 0.4rem 0.8rem;
   cursor: pointer;
   letter-spacing: 0.05em;
+  z-index: 2;
 }
 .lightbox-close:hover { background: rgba(245,239,230,0.1); }
 

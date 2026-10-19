@@ -11,26 +11,74 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---------- Lightbox ----------
+  // ---------- Lightbox (with zoom) ----------
   // Built once and reused for every real photo on the page (including
   // photos added later, like the homepage's auto-loaded contact sheet).
+  // Zoom: mouse wheel, pinch on a touch screen, double-click / double-tap,
+  // the + / - buttons, or the + - 0 keys. When zoomed in, drag to move around.
   const overlay = document.createElement('div');
   overlay.className = 'lightbox-overlay';
   overlay.setAttribute('role', 'dialog');
   overlay.setAttribute('aria-modal', 'true');
   overlay.innerHTML = `
     <button class="lightbox-close focus-ring" aria-label="Close">CLOSE ✕</button>
-    <img alt="">
-    <div class="lightbox-caption"><span class="lightbox-loc"></span></div>
+    <div class="lightbox-tools">
+      <button class="lightbox-zoom focus-ring" data-zoom="out" aria-label="Zoom out">−</button>
+      <button class="lightbox-zoom focus-ring" data-zoom="in" aria-label="Zoom in">+</button>
+    </div>
+    <img alt="" draggable="false">
+    <div class="lightbox-caption"><span class="lightbox-loc"></span><span class="lightbox-hint">Scroll, pinch or double-click to zoom</span></div>
   `;
   document.body.appendChild(overlay);
   const lbImg = overlay.querySelector('img');
   const lbLoc = overlay.querySelector('.lightbox-loc');
   const lbClose = overlay.querySelector('.lightbox-close');
 
+  const MAX_ZOOM = 5;
+  let zScale = 1, zX = 0, zY = 0, openToken = 0;
+
+  function applyZoom() {
+    lbImg.style.transform = `translate(${zX}px, ${zY}px) scale(${zScale})`;
+    overlay.classList.toggle('zoomed', zScale > 1.001);
+  }
+  function resetZoom() { zScale = 1; zX = 0; zY = 0; applyZoom(); }
+  // Keeps the image from being dragged completely out of view.
+  function clampPan() {
+    const w = lbImg.offsetWidth * zScale, h = lbImg.offsetHeight * zScale;
+    const limX = Math.max(0, (w - window.innerWidth) / 2 + 60);
+    const limY = Math.max(0, (h - window.innerHeight) / 2 + 60);
+    zX = Math.max(-limX, Math.min(limX, zX));
+    zY = Math.max(-limY, Math.min(limY, zY));
+  }
+  // Zoom to newScale, keeping the point (cx, cy) on screen where it is.
+  function zoomTo(newScale, cx, cy) {
+    newScale = Math.max(1, Math.min(MAX_ZOOM, newScale));
+    const r = lbImg.getBoundingClientRect();
+    const baseX = r.left + r.width / 2 - zX;   // image centre without pan
+    const baseY = r.top + r.height / 2 - zY;
+    if (cx == null) { cx = window.innerWidth / 2; cy = window.innerHeight / 2; }
+    const k = newScale / zScale;
+    zX = cx - baseX - k * (cx - baseX - zX);
+    zY = cy - baseY - k * (cy - baseY - zY);
+    zScale = newScale;
+    if (zScale <= 1.001) { zScale = 1; zX = 0; zY = 0; }
+    clampPan();
+    applyZoom();
+  }
+
   function openLightbox(img) {
-    lbImg.src = img.dataset.full || img.getAttribute('src');
+    const full = img.dataset.full || img.getAttribute('src');
+    const token = ++openToken;
+    resetZoom();
     lbImg.alt = img.getAttribute('alt') || '';
+    // Show the small copy straight away, then swap in the full-size photo
+    // as soon as it has downloaded, so the viewer is never staring at black.
+    lbImg.src = img.currentSrc || img.src;
+    if (full && lbImg.src.indexOf(full) === -1) {
+      const big = new Image();
+      big.onload = () => { if (token === openToken && overlay.classList.contains('open')) lbImg.src = full; };
+      big.src = full;
+    }
     const frame = img.closest('.frame');
     const loc = frame ? frame.querySelector('.frame-caption .loc') : null;
     lbLoc.textContent = loc ? loc.textContent : '';
@@ -39,8 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function closeLightbox() {
+    openToken++;
     overlay.classList.remove('open');
     lbImg.src = '';
+    resetZoom();
   }
 
   document.body.addEventListener('click', (e) => {
@@ -52,9 +102,73 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === overlay) closeLightbox();
   });
   lbClose.addEventListener('click', closeLightbox);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && overlay.classList.contains('open')) closeLightbox();
+  overlay.querySelectorAll('.lightbox-zoom').forEach((b) => {
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      zoomTo(zScale * (b.dataset.zoom === 'in' ? 1.6 : 1 / 1.6));
+    });
   });
+  document.addEventListener('keydown', (e) => {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === '+' || e.key === '=') zoomTo(zScale * 1.4);
+    else if (e.key === '-' || e.key === '_') zoomTo(zScale / 1.4);
+    else if (e.key === '0') resetZoom();
+  });
+
+  // Mouse wheel / trackpad pinch
+  overlay.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    zoomTo(zScale * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX, e.clientY);
+  }, { passive: false });
+
+  // Drag to pan, two-finger pinch, double-click / double-tap to zoom
+  const pointers = new Map();
+  let pinchDist = 0, lastTapTime = 0, downX = 0, downY = 0, moved = false;
+  lbImg.addEventListener('pointerdown', (e) => {
+    lbImg.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 1) { downX = e.clientX; downY = e.clientY; moved = false; }
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      pinchDist = Math.hypot(a.x - b.x, a.y - b.y);
+      moved = true;
+    }
+  });
+  lbImg.addEventListener('pointermove', (e) => {
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinchDist) zoomTo(zScale * d / pinchDist, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      pinchDist = d;
+    } else if (pointers.size === 1 && zScale > 1) {
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) > 4) moved = true;
+      zX += dx; zY += dy;
+      clampPan();
+      applyZoom();
+    }
+  });
+  function endPointer(e) {
+    if (!pointers.has(e.pointerId)) return;
+    const wasSingle = pointers.size === 1;
+    pointers.delete(e.pointerId);
+    pinchDist = 0;
+    if (wasSingle && !moved && e.type === 'pointerup') {
+      const now = Date.now();
+      if (now - lastTapTime < 320) {
+        zoomTo(zScale > 1.001 ? 1 : 2.5, e.clientX, e.clientY);
+        lastTapTime = 0;
+      } else {
+        lastTapTime = now;
+      }
+    }
+  }
+  lbImg.addEventListener('pointerup', endPointer);
+  lbImg.addEventListener('pointercancel', endPointer);
 
   // ---------- Thumbnails in the gallery grids ----------
   // The HTML keeps pointing at the full-size photo (photos/name.jpg), exactly as

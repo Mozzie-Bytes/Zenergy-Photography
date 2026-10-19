@@ -332,7 +332,8 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
 }
 .contact-sheet .frame { border: none; }
 
-.gallery-grid.collapsed .frame:nth-child(n+4) { display: none; }
+.frame-hidden { display: none; }
+.gallery-toggle[hidden] { display: none; }
 .gallery-footer {
   display: flex;
   justify-content: space-between;
@@ -357,6 +358,8 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
   cursor: pointer;
 }
 .gallery-toggle:hover { background: transparent; color: var(--kodachrome); }
+.gallery-toggle-less { background: transparent; color: var(--paper-dim); border-color: rgba(245,239,230,0.35); }
+.gallery-toggle-less:hover { color: var(--paper); border-color: var(--paper); }
 .gallery-back-link {
   display: inline-flex;
   align-items: center;

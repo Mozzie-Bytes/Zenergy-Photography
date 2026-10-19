@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const lbClose = overlay.querySelector('.lightbox-close');
 
   function openLightbox(img) {
-    lbImg.src = img.getAttribute('src');
+    lbImg.src = img.dataset.full || img.getAttribute('src');
     lbImg.alt = img.getAttribute('alt') || '';
     const frame = img.closest('.frame');
     const loc = frame ? frame.querySelector('.frame-caption .loc') : null;
@@ -56,6 +56,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && overlay.classList.contains('open')) closeLightbox();
   });
 
+  // ---------- Thumbnails in the gallery grids ----------
+  // The HTML keeps pointing at the full-size photo (photos/name.jpg), exactly as
+  // you write it. Here each grid image is switched to its small copy
+  // (photos/thumbs/name.jpg, made by make_thumbs.py) so the grids load fast.
+  // The full-size file is kept in data-full and only loaded when a photo is
+  // clicked to enlarge. If a thumbnail doesn't exist yet, the full-size photo
+  // is used instead, so nothing ever shows up blank.
+  document.querySelectorAll('.gallery-grid .frame-photo img').forEach((img) => {
+    const full = img.getAttribute('src');
+    if (!full || !/^photos\/[^/]+$/.test(full)) return;
+    img.dataset.full = full;
+    img.addEventListener('error', function fallback() {
+      img.removeEventListener('error', fallback);
+      img.src = full;
+    });
+    img.src = full.replace('photos/', 'photos/thumbs/');
+  });
+
   // ---------- Shuffle each gallery's photo order ----------
   // A fresh random arrangement every time the page loads — nothing pinned
   // down twice. Frames marked class="frame pick" are the showcase: they are
@@ -73,45 +91,65 @@ document.addEventListener('DOMContentLoaded', () => {
     picks.concat(rest).forEach((f) => grid.appendChild(f));
   });
 
-  // ---------- Gallery preview / expand-on-click, + back-to-wheel link ----------
-  // Each gallery shows a small taste by default. Clicking the gallery's
-  // name/number (or the "view all" button) reveals the rest. Photos stay
-  // lazy-loaded either way, so nothing downloads until it's actually shown.
-  // Every gallery also gets a link back to the homepage wheel, sitting to
-  // the right of that same toggle (or alone, for galleries with nothing to expand).
-  const PREVIEW_COUNT = 3;
+  // ---------- Gallery preview / "show more", + back-to-wheel link ----------
+  // Each gallery opens on a small taste. "Show more" reveals the next batch,
+  // so a big gallery never lands on a visitor all at once. Clicking the
+  // gallery's name/number does the same. Photos stay lazy-loaded, so nothing
+  // downloads until it's actually shown. Every gallery also gets a link back
+  // to the homepage wheel.
+  const PREVIEW_COUNT = 3;  // shown while a gallery is closed
+  const PAGE_SIZE = 12;     // how many more each "Show more" click reveals
   document.querySelectorAll('.gallery-grid').forEach((grid) => {
-    const frameCount = Array.from(grid.children).filter(el => el.classList.contains('frame')).length;
+    const frames = Array.from(grid.children).filter(el => el.classList.contains('frame'));
+    const total = frames.length;
+    let shown = Math.min(PREVIEW_COUNT, total);
 
     const footer = document.createElement('div');
     footer.className = 'gallery-footer';
     grid.insertAdjacentElement('afterend', footer);
 
-    if (frameCount > PREVIEW_COUNT) {
-      grid.classList.add('collapsed');
+    let moreBtn = null, lessBtn = null;
+    const section = grid.closest('section');
 
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'gallery-toggle focus-ring';
-      toggle.textContent = `View all ${frameCount} photos →`;
-      footer.appendChild(toggle);
+    function render() {
+      frames.forEach((f, i) => f.classList.toggle('frame-hidden', i >= shown));
+      if (!moreBtn) return;
+      const left = total - shown;
+      moreBtn.hidden = left <= 0;
+      moreBtn.textContent = (shown <= PREVIEW_COUNT && left <= PAGE_SIZE)
+        ? `View all ${total} photos →`
+        : `Show ${Math.min(PAGE_SIZE, left)} more (${left} left) →`;
+      lessBtn.hidden = shown <= PREVIEW_COUNT;
+    }
+    function showMore() { shown = Math.min(total, shown + PAGE_SIZE); render(); }
+    function showLess() {
+      shown = Math.min(PREVIEW_COUNT, total); render();
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-      function setExpanded(open) {
-        grid.classList.toggle('collapsed', !open);
-        toggle.textContent = open ? 'Show less ↑' : `View all ${frameCount} photos →`;
-      }
+    if (total > PREVIEW_COUNT) {
+      moreBtn = document.createElement('button');
+      moreBtn.type = 'button';
+      moreBtn.className = 'gallery-toggle focus-ring';
+      moreBtn.addEventListener('click', showMore);
+      footer.appendChild(moreBtn);
 
-      toggle.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
+      lessBtn = document.createElement('button');
+      lessBtn.type = 'button';
+      lessBtn.className = 'gallery-toggle gallery-toggle-less focus-ring';
+      lessBtn.textContent = 'Show less ↑';
+      lessBtn.addEventListener('click', showLess);
+      footer.appendChild(lessBtn);
 
-      // Clicking the gallery's own name/number does the same thing.
-      const section = grid.closest('section');
+      // Clicking the gallery's own name/number opens or closes it.
       const h2 = section && section.querySelector('.section-head h2');
       const titleWrap = h2 && h2.closest('div');
       if (titleWrap) {
         titleWrap.style.cursor = 'pointer';
-        titleWrap.addEventListener('click', () => setExpanded(grid.classList.contains('collapsed')));
+        titleWrap.addEventListener('click', () => (shown > PREVIEW_COUNT ? showLess() : showMore()));
       }
     }
+    render();
 
     const backLink = document.createElement('a');
     backLink.href = 'index.html#ensoStage';

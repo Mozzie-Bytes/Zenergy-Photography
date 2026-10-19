@@ -367,6 +367,24 @@ function autoFillExifCaptions() {
   });
 }
 
+// Small copy of a photo (photos/name.jpg -> photos/thumbs/name.jpg). The
+// homepage uses these for display AND for reading dates, so it never has to
+// download the big originals just to show a few pictures.
+function thumbOf(src) {
+  return /^photos\/[^/]+$/.test(src || '') ? src.replace('photos/', 'photos/thumbs/') : src;
+}
+// Loads an <Image> from the thumbnail; if that file doesn't exist yet, retries
+// with the full-size photo.
+function loadImageWithFallback(im, src) {
+  const prev = im.onerror;   // the caller's own "it failed" handler
+  let retried = false;
+  im.onerror = (e) => {
+    if (!retried && thumbOf(src) !== src) { retried = true; im.src = src; }
+    else if (prev) prev.call(im, e);
+  };
+  im.src = thumbOf(src);
+}
+
 // Homepage-only: reads every real photo currently in galleries.html, checks
 // each one's EXIF capture date, and renders the 6 most recently-taken photos
 // into the homepage contact sheet automatically. Nothing to maintain by
@@ -419,7 +437,7 @@ async function buildHomepageContactSheet() {
             im.onerror = function () {
               resolve({ ...p, date: null });
             };
-            im.src = p.src;
+            loadImageWithFallback(im, p.src);
           })
       )
     );
@@ -440,7 +458,7 @@ async function buildHomepageContactSheet() {
         const loc = p.alt && p.alt !== 'Describe this photo' ? p.alt : '';
         return `
         <div class="frame">
-          <div class="frame-photo"><img src="${p.src}" alt="${p.alt}" style="width:100%; height:100%; object-fit:cover;" loading="lazy"></div>
+          <div class="frame-photo"><img src="${thumbOf(p.src)}" data-full="${p.src}" alt="${p.alt}" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src=this.dataset.full}" style="width:100%; height:100%; object-fit:cover;" loading="lazy"></div>
           <div class="frame-caption"><span class="exif-auto">…</span><span class="loc">${loc}</span></div>
         </div>`;
       })
@@ -499,14 +517,14 @@ async function buildRandomGalleryTeasers() {
             });
           };
           im.onerror = function () { resolve({ src, date: null }); };
-          im.src = src;
+          loadImageWithFallback(im, src);
         })));
         withDates.sort((a, b) => (b.date || 0) - (a.date || 0));
         if (withDates[0]) thumbSrc = withDates[0].src;
       }
 
       const descText = desc ? desc.textContent.split('.')[0] + '.' : '';
-      const thumbImg = thumbSrc ? `<img src="${thumbSrc}" alt="" loading="lazy">` : '';
+      const thumbImg = thumbSrc ? `<img src="${thumbOf(thumbSrc)}" alt="" loading="lazy" onerror="if(!this.dataset.fb){this.dataset.fb=1;this.src='${thumbSrc}'}">` : '';
 
       return `<a href="galleries.html#${galleryId}" class="card focus-ring" style="text-decoration:none;">
         <div class="card-thumb">${thumbImg}</div>

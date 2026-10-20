@@ -4,7 +4,7 @@ make_thumbs.py  -  makes small "thumbnail" copies of your site photos.
 
 WHY: the gallery grids only show photos about 380 pixels wide, but were loading
 the full 2000 pixel originals. This makes a small copy of each photo (about
-900 pixels on the long side) in  photos/thumbs/  . The grids load the small
+800 pixels on the long side) in  photos/thumbs/  . The grids load the small
 copies; the full-size photo only loads when a visitor clicks to enlarge it.
 
 YOUR ORIGINAL PHOTOS ARE NEVER CHANGED.
@@ -34,8 +34,8 @@ try:
 except ImportError:
     sys.exit("Pillow is not installed. Run:  pip install pillow   (then run this again)")
 
-MAX_SIDE = 900      # long side of the thumbnail, in pixels
-QUALITY = 80        # JPEG quality (80 looks good and keeps files small)
+MAX_SIDE = 800      # long side of the thumbnail, in pixels (sharp on phones, still light)
+QUALITY = 78        # JPEG quality (78 looks good and keeps files small)
 EXTS = {".jpg", ".jpeg", ".png"}
 
 here = Path(__file__).resolve().parent
@@ -54,8 +54,16 @@ for src in sorted(photos.iterdir()):
         continue
     dst = thumbs / src.name
     if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime:
-        skipped += 1
-        continue
+        # Up to date - but only if it is already the size we want now. (If you
+        # change MAX_SIDE, older thumbnails of a different size get remade.)
+        try:
+            with Image.open(src) as a, Image.open(dst) as b:
+                want = min(MAX_SIDE, max(a.size))
+                if abs(max(b.size) - want) <= 1:
+                    skipped += 1
+                    continue
+        except Exception:
+            pass
     try:
         with Image.open(src) as im:
             exif = im.getexif()                  # keep shutter/aperture/ISO/date for the captions

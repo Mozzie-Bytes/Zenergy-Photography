@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backLink = document.createElement('a');
     backLink.href = 'index.html#ensoStage';
     backLink.className = 'gallery-back-link focus-ring';
-    backLink.textContent = '← Back to the wheel';
+    backLink.innerHTML = '<img src="enso-icon.png" alt="" width="22" height="22" class="back-enso"><span>Back to the Ensō</span>';
     footer.appendChild(backLink);
   });
 

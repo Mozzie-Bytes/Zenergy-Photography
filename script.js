@@ -291,7 +291,10 @@ document.addEventListener('DOMContentLoaded', () => {
           io.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15 });
+    // threshold 0 + a small bottom margin: a fixed 15% threshold can never be met by
+    // an article taller than ~6x the screen (long journal posts on a phone), which
+    // left them invisible until the very end. Any visible pixel now triggers it.
+    }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
     revealEls.forEach(el => io.observe(el));
   } else {
     revealEls.forEach(el => el.classList.add('in'));

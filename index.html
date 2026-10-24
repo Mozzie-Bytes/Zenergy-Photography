@@ -350,12 +350,13 @@
   //    a link, so while the ring is open a click there just folds it instead of navigating.
   document.addEventListener('pointerdown', (e) => {
     if (!isOpen()) return;
+    if (openedBy === 'auto') return;   // touch screens: the ring stays open while it's on screen
     if (e.target.closest(ASSOCIATED) || e.target.closest('.act-panel')) return;
     collapse();
   });
   Object.keys(panels).forEach((k) => {
     panels[k].addEventListener('click', (e) => {
-      if (isOpen()) { e.preventDefault(); collapse(); }
+      if (isOpen() && openedBy !== 'auto') { e.preventDefault(); collapse(); }
     });
   });
 
@@ -364,6 +365,18 @@
     new IntersectionObserver((entries) => {
       entries.forEach((en) => { if (!en.isIntersecting) collapse(); });
     }, { threshold: 0 }).observe(stage);
+  }
+
+  // 2b. Touch screens have no hover, so nothing would ever unfurl the ring. There, it
+  //     blooms by itself (bottom-left round to the right) once the section is mostly
+  //     on screen, and folds again when scrolled away, so it replays on return.
+  const canHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
+  if (!canHover && 'IntersectionObserver' in window) {
+    new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting && !isOpen()) setTimeout(() => { if (!isOpen()) setExpanded(true, 'auto'); }, 350);
+      });
+    }, { threshold: 0.6 }).observe(stage);
   }
 
   // 3. Leaving the page, and coming back with Back/Forward (browsers restore the page

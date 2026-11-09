@@ -82,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const frame = img.closest('.frame');
     const loc = frame ? frame.querySelector('.frame-caption .loc') : null;
     lbLoc.textContent = loc ? loc.textContent : '';
+    const oldNote = overlay.querySelector('.lightbox-caption .note'); if (oldNote) oldNote.remove();
+    const note = frame ? frame.querySelector('.frame-caption .note') : null;
+    if (note) { const n = document.createElement('span'); n.className = 'note'; n.textContent = note.textContent; overlay.querySelector('.lightbox-caption').appendChild(n); }
     overlay.classList.add('open');
     lbClose.focus();
   }

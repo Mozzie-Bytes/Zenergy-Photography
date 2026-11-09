@@ -1031,3 +1031,8 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
 .home-hero { padding: clamp(1rem, 3vw, 2rem) 0 0; }
 #galleries { padding-top: clamp(1.5rem, 4vw, 2.5rem); padding-bottom: clamp(1.5rem, 4vw, 2.5rem); }
 #galleries .section-head { margin-bottom: 1rem; }
+
+/* optional extra line under a photo's caption (e.g. edit credits) */
+.frame-caption { flex-wrap: wrap; }
+.frame-caption .note { flex: 0 0 100%; margin-top: 0.45rem; font-style: italic; letter-spacing: 0; opacity: 0.85; }
+.lightbox-caption .note { display: block; margin-top: 0.4rem; font-style: italic; opacity: 0.85; }

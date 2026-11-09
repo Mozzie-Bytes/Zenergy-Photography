@@ -6,6 +6,9 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Galleries — Zenergy</title>
 <meta content="Zenergy's photo galleries, told in five acts — from the cosmic and the elemental through to the human and the worn." name="description"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Tangerine:wght@400;700&family=Cormorant:ital,wght@1,400;1,500;1,600&display=swap">
 <link href="style.css" rel="stylesheet"/>
 <style>
   /* Anchor links (galleries.html#act-3, #mountains, ...) land BELOW the sticky header.
@@ -22,11 +25,12 @@
 <a class="logo" href="index.html">
 <img alt="Zenergy — One Moment In Time, by Steve McLaren" class="logo-mark" src="logo.png"/>
 </a>
-<button aria-expanded="false" aria-label="Toggle menu" class="nav-toggle focus-ring">MENU</button>
+<div class="nav-mobile"><a href="galleries.html" class="nav-galleries-pill focus-ring">Galleries</a>
+  <button aria-expanded="false" aria-label="Toggle menu" class="nav-toggle focus-ring">MENU</button></div>
 <ul class="nav-links">
 <li><a href="index.html">Home</a></li>
 <li><a href="about.html">About</a></li>
-<li><a href="galleries.html">Galleries</a></li>
+<li><a href="galleries.html" class="nav-galleries">Galleries</a></li>
 <li><a href="journal.html">Journal</a></li>
 <li><a href="contact.html">Contact</a></li>
 </ul>
@@ -1576,7 +1580,7 @@
 </div>
 </div>
 </footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
-<script src="script.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+<script defer src="script.js"></script>
 </body>
 </html>

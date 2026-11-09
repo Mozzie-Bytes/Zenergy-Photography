@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zenergy — One Moment In Time</title>
 <meta name="description" content="Zenergy is a photographic journal — One Moment in Time, caught before it was gone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=Tangerine:wght@400;700&family=Cormorant:ital,wght@1,400;1,500;1,600&display=swap">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,11 +18,12 @@
     <a href="index.html" class="logo">
       <img src="logo.png" alt="Zenergy — One Moment In Time, by Steve McLaren" class="logo-mark">
     </a>
-    <button class="nav-toggle focus-ring" aria-expanded="false" aria-label="Toggle menu">MENU</button>
+    <div class="nav-mobile"><a href="galleries.html" class="nav-galleries-pill focus-ring">Galleries</a>
+      <button class="nav-toggle focus-ring" aria-expanded="false" aria-label="Toggle menu">MENU</button></div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="about.html">About</a></li>
-      <li><a href="galleries.html">Galleries</a></li>
+      <li><a href="galleries.html" class="nav-galleries">Galleries</a></li>
       <li><a href="journal.html">Journal</a></li>
       <li><a href="contact.html">Contact</a></li>
     </ul>
@@ -29,61 +33,27 @@
 <main>
 
   <!-- HERO -->
-  <section>
+  <section class="home-hero">
     <div class="wrap center" style="padding-top: 2rem;">
       <span class="eyebrow">A photographic journal</span>
       <h1 class="hero-mark-name">Zenergy</h1>
       <p class="hero-mark-tagline">One Moment In Time</p>
-      <p style="max-width: 46ch; margin: 0 auto 2rem; font-size: 1.05rem;">
+      <p style="max-width: 46ch; margin: 0 auto 1rem; font-size: 1.05rem;">
         Light doesn't wait. Every frame here is a bet made in a fraction of a second —
         on a street corner, a coastline, a stranger's face — that this moment was
         worth keeping.
       </p>
-      <div style="display:flex; gap: 1rem; justify-content:center; flex-wrap: wrap;">
-        <a href="#ensoStage" class="btn btn-solid focus-ring">See how it's organised ↓</a>
-        <a href="about.html" class="btn focus-ring">About the project</a>
-      </div>
     </div>
   </section>
-
-  <!-- CONTACT SHEET — auto-built from your galleries, newest 6 photos first -->
-  <section style="padding-top: 0;">
-    <div class="wrap">
-      <div class="contact-sheet reveal" id="auto-contact-sheet">
-        <p class="muted center" style="grid-column: 1/-1;">Loading your latest shots…</p>
-      </div>
-      <p class="center muted" style="margin-top: 1rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.05em;">
-        The newest six, always. One frame stops, the next one starts turning.
-      </p>
-    </div>
-  </section>
-
-  <div class="wrap"><div class="divider"></div></div>
-
-  <!-- INTRO -->
-  <section>
-    <div class="wrap" style="max-width: 760px;">
-      <span class="eyebrow">The project</span>
-      <h2>Shot on instinct, kept on purpose.</h2>
-      <p>
-        Zenergy started as a way to slow down — one frame a day, no reshoots,
-        no staging. It's grown into a running record of light: golden hour on
-        a fire escape, fog rolling off a coastline, the half-second before
-        someone notices the camera. Some of it's good. All of it's honest.
-      </p>
-      <p>This is where it lives, roll by roll.</p>
-    </div>
-  </section>
-
-  <div class="wrap"><div class="divider"></div></div>
 
   <!-- GALLERIES: ENSŌ WHEEL — Act 1 (pinned) at center, Acts 2–5 randomized -->
-  <section>
+  <section id="galleries">
     <div class="wrap">
       <div class="section-head">
         <div>
           <span class="eyebrow">Browse by act</span>
           <h2>Galleries</h2>
+          <p class="section-sub">Five acts, nineteen galleries. <span class="hint-hover">Click</span><span class="hint-touch">Tap</span> a piece of the ensō to step inside — or pick a gallery below.</p>
         </div>
       </div>
     </div>
@@ -98,16 +68,16 @@
           <img src="photos/all-that-is-02-20250911_224811_2.jpg" alt="" data-pinned>
         </a>
         <a class="act-panel" data-act="bl" href="galleries.html#act-2" tabindex="-1" aria-hidden="true">
-          <img src="photos/waterfalls-01-P7040268.jpg" alt="">
+          <img loading="lazy" decoding="async" src="photos/waterfalls-01-P7040268.jpg" alt="">
         </a>
         <a class="act-panel" data-act="tl" href="galleries.html#act-3" tabindex="-1" aria-hidden="true">
-          <img src="photos/forests-01-20250914_142538.jpg" alt="">
+          <img loading="lazy" decoding="async" src="photos/forests-01-20250914_142538.jpg" alt="">
         </a>
         <a class="act-panel" data-act="tr" href="galleries.html#act-4" tabindex="-1" aria-hidden="true">
-          <img src="photos/portraits-11-P8302053.03.jpg" alt="">
+          <img loading="lazy" decoding="async" src="photos/portraits-11-P8302053.03.jpg" alt="">
         </a>
         <a class="act-panel" data-act="br" href="galleries.html#act-5" tabindex="-1" aria-hidden="true">
-          <img src="photos/wabi-sabi-04-20250914_142232.jpg" alt="">
+          <img loading="lazy" decoding="async" src="photos/wabi-sabi-04-20250914_142232.jpg" alt="">
         </a>
       </div>
 
@@ -169,15 +139,65 @@
 
     </div>
     <div class="wrap">
+    <ul class="act-list" aria-label="All galleries, by act">
+      <li class="act-card" data-act="center" style="--accent:#C9C2B8;"><a class="act-card-head" href="galleries.html#act-1"><img class="act-thumb" data-act="center" src="photos/all-that-is-02-20250911_224811_2.jpg" alt="" loading="lazy" decoding="async"><span class="act-card-title"><span class="act-card-num">Act 1</span><span class="act-card-name">The Black</span><span class="act-card-desc">Ensō</span></span></a><ul class="act-card-links"><li><a href="galleries.html#all-that-is">Ensō</a></li><li><a href="galleries.html#skies">Skies Above</a></li></ul></li>
+      <li class="act-card" data-act="bl" style="--accent:#E5533C;"><a class="act-card-head" href="galleries.html#act-2"><img class="act-thumb" data-act="bl" src="photos/waterfalls-01-P7040268.jpg" alt="" loading="lazy" decoding="async"><span class="act-card-title"><span class="act-card-num">Act 2</span><span class="act-card-name">The Red</span><span class="act-card-desc">Grand Topography</span></span></a><ul class="act-card-links"><li><a href="galleries.html#mountains">Mountains</a></li><li><a href="galleries.html#rivers">Rivers</a></li><li><a href="galleries.html#waterfalls">Waterfalls</a></li><li><a href="galleries.html#coastlines">Coastlines</a></li></ul></li>
+      <li class="act-card" data-act="tl" style="--accent:#9BCB6A;"><a class="act-card-head" href="galleries.html#act-3"><img class="act-thumb" data-act="tl" src="photos/forests-01-20250914_142538.jpg" alt="" loading="lazy" decoding="async"><span class="act-card-title"><span class="act-card-num">Act 3</span><span class="act-card-name">The Green &amp; The Gold</span><span class="act-card-desc">The Living Bush</span></span></a><ul class="act-card-links"><li><a href="galleries.html#forests">Green &amp; Gold</a></li><li><a href="galleries.html#wildflowers">Wildflowers</a></li><li><a href="galleries.html#creatures">Creatures</a></li></ul></li>
+      <li class="act-card" data-act="tr" style="--accent:#C77DFF;"><a class="act-card-head" href="galleries.html#act-4"><img class="act-thumb" data-act="tr" src="photos/portraits-11-P8302053.03.jpg" alt="" loading="lazy" decoding="async"><span class="act-card-title"><span class="act-card-num">Act 4</span><span class="act-card-name">The Rainbow</span><span class="act-card-desc">Human Element</span></span></a><ul class="act-card-links"><li><a href="galleries.html#portraits">Portraits</a></li><li><a href="galleries.html#streets">Streets</a></li><li><a href="galleries.html#story">Visual Storytelling</a></li><li><a href="galleries.html#in-the-zone">In The Zone</a></li><li><a href="galleries.html#tathata">Tathata</a></li></ul></li>
+      <li class="act-card" data-act="br" style="--accent:#FFC72C;"><a class="act-card-head" href="galleries.html#act-5"><img class="act-thumb" data-act="br" src="photos/wabi-sabi-04-20250914_142232.jpg" alt="" loading="lazy" decoding="async"><span class="act-card-title"><span class="act-card-num">Act 5</span><span class="act-card-name">The Yellow &amp; The Light</span><span class="act-card-desc">Return to Soil</span></span></a><ul class="act-card-links"><li><a href="galleries.html#golden-hour">Golden Hour</a></li><li><a href="galleries.html#night">Night</a></li><li><a href="galleries.html#fungi">Fungi</a></li><li><a href="galleries.html#ma">Mu</a></li><li><a href="galleries.html#wabi-sabi">Wabi-Sabi</a></li></ul></li>
+    </ul>
+    </div>
+    <div class="wrap">
       <p class="center muted" style="margin-top: 1.5rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.05em;">
         <a href="galleries.html" class="focus-ring" style="color:inherit;">Prefer a straightforward list? See all galleries →</a>
       </p>
     </div>
   </section>
 
+  <!-- WAY IN -->
+  <section style="padding: 2rem 0 1rem;">
+    <div class="wrap center">
+      <div style="display:flex; gap: 1rem; justify-content:center; flex-wrap: wrap;">
+        <a href="galleries.html" class="btn btn-solid focus-ring">Enter the Galleries →</a>
+        <a href="about.html" class="btn focus-ring">About the project</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT SHEET — auto-built from your galleries, newest 6 photos first -->
+  <section style="padding-top: 0;">
+    <div class="wrap">
+      <div class="contact-sheet reveal" id="auto-contact-sheet">
+        <p class="muted center" style="grid-column: 1/-1;">Loading your latest shots…</p>
+      </div>
+      <p class="center muted" style="margin-top: 1rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.05em;">
+        The newest six, always. One frame stops, the next one starts turning.
+      </p>
+    </div>
+  </section>
+
   <div class="wrap"><div class="divider"></div></div>
 
-  <!-- JOURNAL TEASER -->
+  <!-- INTRO -->
+  <section>
+    <div class="wrap" style="max-width: 760px;">
+      <span class="eyebrow">The project</span>
+      <h2>Shot on instinct, kept on purpose.</h2>
+      <p>
+        Zenergy started as a way to slow down — one frame a day, no reshoots,
+        no staging. Call it Zen photography, or <em>mindsight</em>: seeing with
+        the mind as much as the eye, and pressing the shutter the instant the
+        two agree. It's grown into a running record of light: golden hour on
+        a fire escape, fog rolling off a coastline, the half-second before
+        someone notices the camera. Some of it's good. All of it's honest.
+      </p>
+      <p>This is where it lives, roll by roll.</p>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="divider"></div></div>
+
+  <!-- JOURNAL TEASER — the newest entry only; filled from journal.html by the script at the bottom -->
   <section>
     <div class="wrap">
       <div class="section-head">
@@ -187,16 +207,15 @@
         </div>
         <a href="journal.html" class="btn focus-ring">Read the journal →</a>
       </div>
-      <div class="card reveal">
-        <span class="eyebrow">Albany</span>
-        <h3>Where the coast stops being polite</h3>
-        <p>
-          A sunset over the limestone, the moment the sun broke through and
-          the whole sky lit up above the Southern Ocean. Three of those
-          frames are in the galleries.
-        </p>
-        <a href="journal.html" class="btn focus-ring" style="margin-top:0.5rem;">Continue reading</a>
-      </div>
+      <article class="card journal-tease reveal" id="journalTease">
+        <a class="jt-photo" href="journal.html"><img src="photos/thumbs/story-37-home-time-perth-underground.jpg" alt="A man in a red shirt and cap with a backpack stands facing a Perth Underground station sign while a train streaks past in a long orange blur" loading="lazy"></a>
+        <div class="jt-text">
+          <span class="eyebrow">Perth Underground Station &middot; November 2026</span>
+          <h3>Home Time</h3>
+          <p class="jt-excerpt">The train slid past with the whole platform reflected in its windows, and one man stood still in the middle of it, backpack on, waiting for his turn to go home…</p>
+          <a href="journal.html" class="btn focus-ring">Continue reading</a>
+        </div>
+      </article>
     </div>
   </section>
 
@@ -236,8 +255,8 @@
   </div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
-<script src="script.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+<script defer src="script.js"></script>
 
 <!-- ENSŌ WHEEL — SVG clip-path def + init script.
      Kept inline (not folded into script.js) until a Safari/iOS pass confirms
@@ -260,10 +279,10 @@
   wheel.classList.add('js-ready');
 
   // ---------- Wheel scale (works in every browser) ----------
-  // Same maths as the CSS: min(480px, 92vw) / 1136px.
+  // Same maths as the CSS: min(600px, 92vw) / 1136px.
   const wheelInner = wheel.querySelector('.zen-wheel-inner');
   function fitWheel() {
-    wheelInner.style.transform = 'scale(' + (Math.min(480, window.innerWidth * 0.92) / 1136) + ')';
+    wheelInner.style.transform = 'scale(' + (Math.min(600, window.innerWidth * 0.92) / 1136) + ')';
   }
   fitWheel();
   window.addEventListener('resize', fitWheel);
@@ -300,6 +319,8 @@
   stage.querySelectorAll('.act-caption').forEach((el) => { captions[el.dataset.act] = el; });
   stage.querySelectorAll('.act-panel').forEach((el) => { panels[el.dataset.act] = el; });
   stage.querySelectorAll('.act-index a').forEach((el) => { indexLinks[el.dataset.act] = el; });
+  const cards = {};
+  document.querySelectorAll('.act-card').forEach((el) => { cards[el.dataset.act] = el; });
   const segs = {
     center: centerBtn,
     tl: wheel.querySelector('.quad-wrap.tl .ring-seg'),
@@ -317,6 +338,7 @@
       panels[k].classList.toggle('is-active', on);
       if (indexLinks[k]) indexLinks[k].classList.toggle('is-active', on);
       if (captions[k]) captions[k].classList.toggle('is-active', on);
+      if (cards[k]) cards[k].classList.toggle('is-active', on);
       if (segs[k]) segs[k].classList.toggle('is-lit', on);
     });
   }
@@ -452,6 +474,8 @@
     if (!p) return;
     p.setAttribute('src', src);
     applyPanelPosition(act);
+    const t = document.querySelector('.act-thumb[data-act="' + act + '"]');
+    if (t) t.setAttribute('src', src);
   }
 
   async function randomizePhotos() {
@@ -500,7 +524,31 @@
       mirrorToPanel(actOf(img), pick.src);
     });
   }
-  randomizePhotos();
+  // Don't compete with first paint: wait until the page has loaded; skip entirely on Data Saver.
+  const saveData = navigator.connection && navigator.connection.saveData;
+  const start = () => { if (!saveData) setTimeout(randomizePhotos, 400); else { wheel.querySelectorAll('img').forEach(applyWheelPosition); Object.keys(panels).forEach(applyPanelPosition); } };
+  if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
+})();
+</script>
+<script>
+// Journal teaser: show the newest entry from journal.html (static Home Time card is the fallback).
+(function () {
+  const box = document.getElementById('journalTease');
+  if (!box || (navigator.connection && navigator.connection.saveData)) return;
+  const go = () => fetch('journal.html').then((r) => r.text()).then((html) => {
+    const a = new DOMParser().parseFromString(html, 'text/html').querySelector('article.card');
+    if (!a) return;
+    const eyebrow = a.querySelector('.eyebrow'), h3 = a.querySelector('h3'), img = a.querySelector('img');
+    const paras = Array.from(a.querySelectorAll('p')).filter((p) => !p.querySelector('em') || p.textContent.trim().length > 60);
+    if (!eyebrow || !h3 || !paras.length) return;
+    let t = paras[0].textContent.replace(/\s+/g, ' ').trim();
+    if (t.length > 230) t = t.slice(0, 230).replace(/\s+\S*$/, '') + '…';
+    box.querySelector('.eyebrow').innerHTML = eyebrow.innerHTML;
+    box.querySelector('h3').textContent = h3.textContent;
+    box.querySelector('.jt-excerpt').textContent = t;
+    if (img) { const i = box.querySelector('.jt-photo img'); i.src = img.getAttribute('src'); i.alt = img.getAttribute('alt') || ''; }
+  }).catch(() => {});
+  if (document.readyState === 'complete') go(); else window.addEventListener('load', go);
 })();
 </script>
 </body>

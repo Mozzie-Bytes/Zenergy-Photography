@@ -350,20 +350,39 @@
     segs[act].addEventListener('mouseenter', () => setActive(act));
     segs[act].addEventListener('focus', () => setActive(act));
   });
-  centerLabel.addEventListener('mouseenter', () => setActive('center'));
+  // Mouse users: hovering anywhere on the ensō (brush, centre medallion, 'Act 1' label) unfurls the ring too.
+  const hoverOpen = () => {
+    if (window.matchMedia && !window.matchMedia('(hover: hover)').matches) return;   // touch: handled by tap / auto-bloom
+    if (!wheel.classList.contains('expanded')) setExpanded(true, 'hover');
+  };
+  centerBtn.addEventListener('mouseenter', hoverOpen);
+  // The wheel box itself ignores the pointer (so clicks reach the photo behind), so the ensō
+  // area is detected by position: anywhere inside the ring's circle counts as "on the ensō".
+  let lastPt = null;
+  const onEnso = (pt) => {
+    if (!pt) return false;
+    const r = wheel.getBoundingClientRect(), rad = r.height / 2;
+    const dx = pt.x - (r.left + r.width / 2), dy = pt.y - (r.top + r.height / 2);
+    return dx * dx + dy * dy <= rad * rad;
+  };
+  stage.addEventListener('mousemove', (e) => {
+    lastPt = { x: e.clientX, y: e.clientY };
+    if (onEnso(lastPt)) { hoverOpen(); cancelLeave(); }
+  });
+  centerLabel.addEventListener('mouseenter', () => { setActive('center'); hoverOpen(); });
   centerLabel.addEventListener('focus', () => setActive('center'));
 
   // Hovering an act link also unfurls the ring (same behaviour the old legend had).
   Object.keys(indexLinks).forEach((act) => {
     indexLinks[act].addEventListener('mouseenter', () => {
       setActive(act);
-      if (act !== 'center' && !wheel.classList.contains('expanded')) setExpanded(true, 'hover');
+      if (!wheel.classList.contains('expanded')) setExpanded(true, 'hover');
     });
     indexLinks[act].addEventListener('focus', () => setActive(act));
   });
 
   // ---------- Folding the ring back up ----------
-  const ASSOCIATED = '.ring-seg, .wheel-center, .lbl-center, .act-index, .cap-cta'; // things that belong to the wheel
+  const ASSOCIATED = '.zen-wheel, .ring-seg, .wheel-center, .lbl-center, .act-index, .cap-cta'; // things that belong to the wheel
   const isOpen = () => wheel.classList.contains('expanded');
   const collapse = () => { if (isOpen()) setExpanded(false); };
 
@@ -416,7 +435,7 @@
   const cancelLeave = () => { clearTimeout(leaveTimer); leaveTimer = null; };
   const scheduleLeave = () => {
     if (openedBy !== 'hover' || leaveTimer) return;
-    leaveTimer = setTimeout(() => { leaveTimer = null; if (openedBy === 'hover') collapse(); }, 700);
+    leaveTimer = setTimeout(() => { leaveTimer = null; if (openedBy === 'hover' && !onEnso(lastPt)) collapse(); }, 700);
   };
   stage.addEventListener('mouseover', (e) => { if (e.target.closest(ASSOCIATED)) cancelLeave(); else scheduleLeave(); });
   stage.addEventListener('mouseleave', scheduleLeave);

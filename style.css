@@ -954,25 +954,23 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
    ============================================ */
 
 /* ---------- Nav: Galleries is a button, not just another word ---------- */
+/* Outlined (not filled): the gold underline on HOME is the "you are here" marker, so Galleries must not look selected. */
 .nav-links a.nav-galleries {
-  color: var(--ink);
-  background: var(--goldenhour);
-  padding: 0.45rem 0.9rem;
-  border-radius: 999px;
-  font-weight: 500;
+  color: var(--paper); background: transparent; border: 1.5px solid var(--goldenhour);
+  padding: 0.4rem 0.9rem; border-radius: 999px; font-weight: 500;
 }
-.nav-links a.nav-galleries:hover, .nav-links a.nav-galleries:focus-visible { background: var(--paper); color: var(--ink); }
+.nav-links a.nav-galleries:hover, .nav-links a.nav-galleries:focus-visible { background: var(--goldenhour); color: var(--ink); }
 .nav-links a.nav-galleries.active::after { display: none; }
 .nav-mobile { display: none; }
 .nav-galleries-pill {
   font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
-  text-decoration: none; color: var(--ink); background: var(--goldenhour);
-  padding: 0.55rem 0.9rem; border-radius: 999px; font-weight: 500; white-space: nowrap;
+  text-decoration: none; color: var(--paper); background: transparent; border: 1.5px solid var(--goldenhour);
+  padding: 0.5rem 0.9rem; border-radius: 999px; font-weight: 500; white-space: nowrap;
 }
-.nav-galleries-pill:hover, .nav-galleries-pill:focus-visible { background: var(--paper); }
+.nav-galleries-pill:hover, .nav-galleries-pill:focus-visible { background: var(--goldenhour); color: var(--ink); }
 @media (max-width: 780px) {
   .nav-mobile { display: flex; align-items: center; gap: 0.6rem; }
-  .nav-links a.nav-galleries { background: none; color: var(--goldenhour); padding: 0 0 4px; border-radius: 0; }
+  .nav-links a.nav-galleries { background: none; color: var(--goldenhour); border: 0; padding: 0 0 4px; border-radius: 0; }
   /* a 140px logo pushes everything down a phone screen */
   .logo-mark { height: 84px; }
 }

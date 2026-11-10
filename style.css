@@ -954,24 +954,15 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
    ============================================ */
 
 /* ---------- Nav: Galleries is a button, not just another word ---------- */
-/* Outlined (not filled): the gold underline on HOME is the "you are here" marker, so Galleries must not look selected. */
-.nav-links a.nav-galleries {
-  color: var(--paper); background: transparent; border: 1.5px solid var(--goldenhour);
-  padding: 0.4rem 0.9rem; border-radius: 999px; font-weight: 500;
-}
-.nav-links a.nav-galleries:hover, .nav-links a.nav-galleries:focus-visible { background: var(--goldenhour); color: var(--ink); }
-.nav-links a.nav-galleries.active::after { display: none; }
 .nav-mobile { display: none; }
 .nav-galleries-pill {
-  font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase;
-  text-decoration: none; color: var(--paper); background: transparent; border: 1.5px solid var(--goldenhour);
-  padding: 0.5rem 0.9rem; border-radius: 999px; font-weight: 500; white-space: nowrap;
+  font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+  text-decoration: none; color: var(--paper-dim); white-space: nowrap; padding: 0.5rem 0.2rem;
 }
-.nav-galleries-pill:hover, .nav-galleries-pill:focus-visible { background: var(--goldenhour); color: var(--ink); }
+.nav-galleries-pill:hover, .nav-galleries-pill:focus-visible { color: var(--paper); }
 @media (max-width: 780px) {
   .nav-mobile { display: flex; align-items: center; gap: 0.6rem; }
-  .nav-links a.nav-galleries { background: none; color: var(--goldenhour); border: 0; padding: 0 0 4px; border-radius: 0; }
-  /* a 140px logo pushes everything down a phone screen */
+    /* a 140px logo pushes everything down a phone screen */
   .logo-mark { height: 84px; }
 }
 
@@ -1049,11 +1040,12 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
 
 /* ---------- Hero text: five slow lines, each fading in after the last ---------- */
 .hero-lines { max-width: 52ch; margin: 0 auto 1rem; font-size: 1.05rem; line-height: 2; text-wrap: balance; }
-.hero-lines .hl { display: block; opacity: 0; animation: hl-in 1.6s ease forwards; }
+.hero-lines .hl { display: block; opacity: 0; animation: hl-in 2.2s ease forwards; }
 .hero-lines .hl:nth-child(1) { animation-delay: 0.4s; }
-.hero-lines .hl:nth-child(2) { animation-delay: 1.9s; }
-.hero-lines .hl:nth-child(3) { animation-delay: 3.4s; }
-.hero-lines .hl:nth-child(4) { animation-delay: 4.9s; }
-.hero-lines .hl:nth-child(5) { animation-delay: 6.4s; }
+.hero-lines .hl:nth-child(2) { animation-delay: 2.3s; }
+.hero-lines .hl:nth-child(3) { animation-delay: 4.2s; }
+.hero-lines .hl:nth-child(4) { animation-delay: 6.1s; }
+.hero-lines .hl:nth-child(5) { animation-delay: 8.0s; }
+.hero-lines .hl:nth-child(6) { animation-delay: 9.9s; }
 @keyframes hl-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-lines .hl { opacity: 1; animation: none; } }

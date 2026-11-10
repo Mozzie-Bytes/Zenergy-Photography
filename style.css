@@ -1046,3 +1046,14 @@ section { padding: clamp(3rem, 8vw, 6rem) 0; }
 }
 .act-card-links { counter-reset: none; }
 .act-card-links .gn { margin-right: 0.5rem; color: var(--accent, var(--goldenhour)); font-weight: 500; }
+
+/* ---------- Hero text: five slow lines, each fading in after the last ---------- */
+.hero-lines { max-width: 52ch; margin: 0 auto 1rem; font-size: 1.05rem; line-height: 2; text-wrap: balance; }
+.hero-lines .hl { display: block; opacity: 0; animation: hl-in 1.6s ease forwards; }
+.hero-lines .hl:nth-child(1) { animation-delay: 0.4s; }
+.hero-lines .hl:nth-child(2) { animation-delay: 1.9s; }
+.hero-lines .hl:nth-child(3) { animation-delay: 3.4s; }
+.hero-lines .hl:nth-child(4) { animation-delay: 4.9s; }
+.hero-lines .hl:nth-child(5) { animation-delay: 6.4s; }
+@keyframes hl-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero-lines .hl { opacity: 1; animation: none; } }
